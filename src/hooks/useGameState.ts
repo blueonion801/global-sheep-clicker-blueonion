@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import type { User, ChatMessage, GlobalStats, UserCurrency } from '../types/game';
+import type { User, ChatMessage, GlobalStats, UserCurrency, UserStats } from '../types/game';
 import { TIERS, THEMES } from '../types/game';
 import { audioManager } from '../utils/audioManager';
 
@@ -23,6 +23,7 @@ const calculateTier = (clicks: number): number => {
 export const useGameState = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userCurrency, setUserCurrency] = useState<UserCurrency | null>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [globalStats, setGlobalStats] = useState<GlobalStats>({ id: 'global', total_sheep: 0, updated_at: new Date().toISOString() });
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,8 +111,94 @@ export const useGameState = () => {
     }
   };
 
+  const fetchUserStats = async (userId: string): Promise<UserStats | null> => {
+    if (isOfflineMode(forceOffline)) {
+      // Return mock stats for offline mode
+      return {
+        user_id: userId,
+        messages_sent: parseInt(localStorage.getItem('offline_messages_sent') || '0'),
+        highest_daily_clicks: parseInt(localStorage.getItem('offline_highest_daily_clicks') || '0'),
+        longest_coin_streak: parseInt(localStorage.getItem('offline_longest_coin_streak') || '0'),
+        total_days_active: parseInt(localStorage.getItem('offline_total_days_active') || '1'),
+        first_click_date: localStorage.getItem('offline_first_click_date'),
+        last_active_date: new Date().toISOString().split('T')[0],
+        daily_click_history: JSON.parse(localStorage.getItem('offline_daily_click_history') || '{}'),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error && !error.message.includes('Could not find')) {
+        throw error;
+      }
+
+      if (!data) {
+        // Create initial stats record
+        const initialStats: UserStats = {
+          user_id: userId,
+          messages_sent: 0,
+          highest_daily_clicks: 0,
+          longest_coin_streak: 0,
+          total_days_active: 1,
+          first_click_date: new Date().toISOString().split('T')[0],
+          last_active_date: new Date().toISOString().split('T')[0],
+          daily_click_history: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { error: insertError } = await supabase
+          .from('user_stats')
+          .insert([initialStats]);
+
+        if (insertError) {
+          // If it's a duplicate key error, try to fetch the existing record
+          if (insertError.code === '23505') {
+            const { data: existingData, error: fetchError } = await supabase
+              .from('user_stats')
+              .select('*')
+              .eq('user_id', userId)
+              .single();
+            
+            if (fetchError) {
+              throw fetchError;
+            }
+            
+            return existingData;
+          }
+          throw insertError;
+        }
+
+        return initialStats;
+      }
+
+      return data;
+    } catch (err) {
+      console.warn('Failed to fetch user stats, using offline mode');
+      return {
+        user_id: userId,
+        messages_sent: parseInt(localStorage.getItem('offline_messages_sent') || '0'),
+        highest_daily_clicks: parseInt(localStorage.getItem('offline_highest_daily_clicks') || '0'),
+        longest_coin_streak: parseInt(localStorage.getItem('offline_longest_coin_streak') || '0'),
+        total_days_active: parseInt(localStorage.getItem('offline_total_days_active') || '1'),
+        first_click_date: localStorage.getItem('offline_first_click_date'),
+        last_active_date: new Date().toISOString().split('T')[0],
+        daily_click_history: JSON.parse(localStorage.getItem('offline_daily_click_history') || '{}'),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
+  };
+
   const claimDailyReward = useCallback(async (): Promise<void> => {
-    if (!user || !userCurrency) return;
+    if (!user || !userCurrency || !userStats) return;
 
     audioManager.playGuiSound();
 
@@ -145,28 +232,46 @@ export const useGameState = () => {
       updated_at: now.toISOString()
     };
 
+    // Update longest streak if current is higher
+    const updatedStats: UserStats = {
+      ...userStats,
+      longest_coin_streak: Math.max(userStats.longest_coin_streak, consecutiveDays),
+      updated_at: now.toISOString()
+    };
+
     setUserCurrency(updatedCurrency);
+    setUserStats(updatedStats);
 
     if (isOfflineMode(forceOffline)) {
       localStorage.setItem('offline_wool_coins', updatedCurrency.wool_coins.toString());
       localStorage.setItem('offline_last_daily_claim', updatedCurrency.last_daily_claim);
       localStorage.setItem('offline_consecutive_days', updatedCurrency.consecutive_days.toString());
+      localStorage.setItem('offline_longest_coin_streak', updatedStats.longest_coin_streak.toString());
     } else {
       try {
-        await supabase
-          .from('user_currency')
-          .update({
-            wool_coins: updatedCurrency.wool_coins,
-            last_daily_claim: updatedCurrency.last_daily_claim,
-            consecutive_days: updatedCurrency.consecutive_days,
-            updated_at: updatedCurrency.updated_at
-          })
-          .eq('user_id', user.id);
+        await Promise.all([
+          supabase
+            .from('user_currency')
+            .update({
+              wool_coins: updatedCurrency.wool_coins,
+              last_daily_claim: updatedCurrency.last_daily_claim,
+              consecutive_days: updatedCurrency.consecutive_days,
+              updated_at: updatedCurrency.updated_at
+            })
+            .eq('user_id', user.id),
+          supabase
+            .from('user_stats')
+            .update({
+              longest_coin_streak: updatedStats.longest_coin_streak,
+              updated_at: updatedStats.updated_at
+            })
+            .eq('user_id', user.id)
+        ]);
       } catch (error) {
         console.error('Failed to update daily reward:', error);
       }
     }
-  }, [user, userCurrency, forceOffline]);
+  }, [user, userCurrency, userStats, forceOffline]);
 
   const purchaseTheme = useCallback(async (themeId: string): Promise<boolean> => {
     if (!user || !userCurrency) return false;
@@ -414,9 +519,13 @@ export const useGameState = () => {
       setGlobalStats(statsData);
       setChatMessages(messagesData);
       
-      // Fetch user currency after user is initialized
-      const currencyData = await fetchUserCurrency(userData.id);
+      // Fetch user currency and stats after user is initialized
+      const [currencyData, userStatsData] = await Promise.all([
+        fetchUserCurrency(userData.id),
+        fetchUserStats(userData.id)
+      ]);
       setUserCurrency(currencyData);
+      setUserStats(userStatsData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize data';
       console.error('Initialization error:', errorMessage);
@@ -427,12 +536,12 @@ export const useGameState = () => {
   };
 
   // Batch update function to handle multiple clicks efficiently
-  const batchUpdateDatabase = useCallback(async (clicksToAdd: number, newUserState: User) => {
+  const batchUpdateDatabase = useCallback(async (clicksToAdd: number, newUserState: User, newUserStats?: UserStats) => {
     if (isOfflineMode(forceOffline) || clicksToAdd === 0) return;
 
     try {
-      // Update user stats and global stats in parallel
-      const [userResult, globalResult] = await Promise.all([
+      // Update user stats, user stats, and global stats in parallel
+      const promises = [
         supabase
           .from('users')
           .update({ 
@@ -442,13 +551,33 @@ export const useGameState = () => {
           .eq('id', newUserState.id),
         
         supabase.rpc('increment_global_sheep', { increment_by: clicksToAdd })
-      ]);
+      ];
 
-      if (userResult.error) {
-        console.error('Failed to update user stats:', userResult.error);
+      if (newUserStats) {
+        promises.push(
+          supabase
+            .from('user_stats')
+            .update({
+              highest_daily_clicks: newUserStats.highest_daily_clicks,
+              last_active_date: newUserStats.last_active_date,
+              daily_click_history: newUserStats.daily_click_history,
+              total_days_active: newUserStats.total_days_active,
+              updated_at: newUserStats.updated_at
+            })
+            .eq('user_id', newUserState.id)
+        );
       }
-      if (globalResult.error) {
-        console.error('Failed to update global stats:', globalResult.error);
+
+      const results = await Promise.all(promises);
+
+      if (results[0].error) {
+        console.error('Failed to update user stats:', results[0].error);
+      }
+      if (results[1].error) {
+        console.error('Failed to update global stats:', results[1].error);
+      }
+      if (results[2]?.error) {
+        console.error('Failed to update user stats:', results[2].error);
       }
     } catch (error) {
       console.error('Failed to batch update database:', error);
@@ -456,7 +585,7 @@ export const useGameState = () => {
   }, [forceOffline]);
 
   const incrementSheep = useCallback(async () => {
-    if (!user || !userCurrency) return;
+    if (!user || !userCurrency || !userStats) return;
 
     // Play click sound immediately for responsive feedback
     audioManager.playClickSound();
@@ -468,8 +597,27 @@ export const useGameState = () => {
     const updatedUser = { ...user, total_clicks: newClickCount, tier: newTier };
     const updatedStats = { ...globalStats, total_sheep: globalStats.total_sheep + 1 };
     
+    // Update user stats for daily tracking
+    const today = new Date().toISOString().split('T')[0];
+    const todayClicks = (userStats.daily_click_history[today] || 0) + 1;
+    const updatedUserStats: UserStats = {
+      ...userStats,
+      highest_daily_clicks: Math.max(userStats.highest_daily_clicks, todayClicks),
+      last_active_date: today,
+      daily_click_history: {
+        ...userStats.daily_click_history,
+        [today]: todayClicks
+      },
+      total_days_active: Object.keys({
+        ...userStats.daily_click_history,
+        [today]: todayClicks
+      }).length,
+      updated_at: new Date().toISOString()
+    };
+    
     setUser(updatedUser);
     setGlobalStats(updatedStats);
+    setUserStats(updatedUserStats);
     
     // Award wool coins every 10 clicks for Shepherd tier and above
     if (newTier >= 1 && newClickCount % 100 === 0) {
@@ -510,6 +658,9 @@ export const useGameState = () => {
       // Store in localStorage for offline mode
       localStorage.setItem('offline_total_sheep', updatedStats.total_sheep.toString());
       localStorage.setItem('offline_user_clicks', newClickCount.toString());
+      localStorage.setItem('offline_highest_daily_clicks', updatedUserStats.highest_daily_clicks.toString());
+      localStorage.setItem('offline_daily_click_history', JSON.stringify(updatedUserStats.daily_click_history));
+      localStorage.setItem('offline_total_days_active', updatedUserStats.total_days_active.toString());
     } else {
       // Clear existing timeout and set a new one for batching
       if (updateTimeout) {
@@ -519,12 +670,12 @@ export const useGameState = () => {
       const newTimeout = setTimeout(async () => {
         const clicksToUpdate = pendingClicks + 1; // Include current click
         setPendingClicks(0);
-        await batchUpdateDatabase(clicksToUpdate, updatedUser);
+        await batchUpdateDatabase(clicksToUpdate, updatedUser, updatedUserStats);
       }, 300); // Batch updates every 300ms
       
       setUpdateTimeout(newTimeout);
     }
-  }, [user, userCurrency, globalStats, pendingClicks, updateTimeout, batchUpdateDatabase, forceOffline]);
+  }, [user, userCurrency, userStats, globalStats, pendingClicks, updateTimeout, batchUpdateDatabase, forceOffline]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -557,7 +708,7 @@ export const useGameState = () => {
     }
   }, [user, forceOffline]);
   const sendMessage = useCallback(async (message: string) => {
-    if (!user || !message.trim()) return;
+    if (!user || !userStats || !message.trim()) return;
 
     if (isOfflineMode(forceOffline)) {
       console.warn('Chat is not available in offline mode');
@@ -573,15 +724,32 @@ export const useGameState = () => {
       created_at: new Date().toISOString()
     };
 
+    // Update message count in user stats
+    const updatedUserStats: UserStats = {
+      ...userStats,
+      messages_sent: userStats.messages_sent + 1,
+      updated_at: new Date().toISOString()
+    };
+    setUserStats(updatedUserStats);
+
     try {
-      await supabase
-        .from('chat_messages')
-        .insert([newMessage]);
+      await Promise.all([
+        supabase
+          .from('chat_messages')
+          .insert([newMessage]),
+        supabase
+          .from('user_stats')
+          .update({
+            messages_sent: updatedUserStats.messages_sent,
+            updated_at: updatedUserStats.updated_at
+          })
+          .eq('user_id', user.id)
+      ]);
       
     } catch (error) {
       console.error('Failed to send message:', error);
     }
-  }, [user]);
+  }, [user, userStats]);
 
   const updateNickname = useCallback(async (newNickname: string) => {
     if (!user || !newNickname.trim()) return;
@@ -647,6 +815,7 @@ export const useGameState = () => {
   return {
     user,
     userCurrency,
+    userStats,
     globalStats,
     chatMessages,
     isOffline: isOfflineMode(forceOffline),
