@@ -30,8 +30,8 @@ export const StatsMenu: React.FC<StatsMenuProps> = ({
     : 0;
 
   // Calculate average clicks per day
-  const averageClicksPerDay = userStats && userStats.total_days_active > 0
-    ? user.total_clicks / userStats.total_days_active
+  const averageClicksPerDay = userStats && Object.keys(userStats.daily_click_history).length > 0
+    ? Object.values(userStats.daily_click_history).reduce((sum, clicks) => sum + clicks, 0) / Object.keys(userStats.daily_click_history).length
     : 0;
 
   // Calculate current upgrades percentage
