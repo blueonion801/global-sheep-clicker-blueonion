@@ -73,27 +73,15 @@ export const useGameState = () => {
 
         const { data: insertedData, error: insertError } = await supabase
           .from('user_currency')
-          .insert([initialCurrency]);
+          .insert([initialCurrency])
+          .select()
+          .single();
 
         if (insertError) {
-          // If it's a duplicate key error, try to fetch the existing record
-          if (insertError.code === '23505') {
-            const { data: existingData, error: fetchError } = await supabase
-              .from('user_currency')
-              .select('*')
-              .eq('user_id', userId)
-              .single();
-            
-            if (fetchError) {
-              throw fetchError;
-            }
-            
-            return existingData;
-          }
           throw insertError;
         }
 
-        return initialCurrency;
+        return insertedData || initialCurrency;
       }
 
       return data;
@@ -154,29 +142,17 @@ export const useGameState = () => {
           updated_at: new Date().toISOString()
         };
 
-        const { error: insertError } = await supabase
+        const { data: insertedData, error: insertError } = await supabase
           .from('user_stats')
-          .insert([initialStats]);
+          .insert([initialStats])
+          .select()
+          .single();
 
         if (insertError) {
-          // If it's a duplicate key error, try to fetch the existing record
-          if (insertError.code === '23505') {
-            const { data: existingData, error: fetchError } = await supabase
-              .from('user_stats')
-              .select('*')
-              .eq('user_id', userId)
-              .single();
-            
-            if (fetchError) {
-              throw fetchError;
-            }
-            
-            return existingData;
-          }
           throw insertError;
         }
 
-        return initialStats;
+        return insertedData || initialStats;
       }
 
       return data;
