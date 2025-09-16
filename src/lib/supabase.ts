@@ -77,6 +77,44 @@ export type Database = {
           updated_at?: string;
         };
       };
+      user_stats: {
+        Row: {
+          user_id: string;
+          messages_sent: number;
+          highest_daily_clicks: number;
+          longest_coin_streak: number;
+          total_days_active: number;
+          first_click_date: string | null;
+          last_active_date: string | null;
+          daily_click_history: Record<string, number>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          messages_sent?: number;
+          highest_daily_clicks?: number;
+          longest_coin_streak?: number;
+          total_days_active?: number;
+          first_click_date?: string | null;
+          last_active_date?: string | null;
+          daily_click_history?: Record<string, number>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          messages_sent?: number;
+          highest_daily_clicks?: number;
+          longest_coin_streak?: number;
+          total_days_active?: number;
+          first_click_date?: string | null;
+          last_active_date?: string | null;
+          daily_click_history?: Record<string, number>;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       chat_messages: {
         Row: {
           id: string;

@@ -6,13 +6,14 @@ import { StatsDisplay } from './components/StatsDisplay';
 import { Chat } from './components/Chat';
 import { TiersList } from './components/TiersList';
 import { WoolShop } from './components/WoolShop';
+import { StatsMenu } from './components/StatsMenu';
 import { ThemeProvider } from './components/ThemeProvider';
 import { useTheme } from './components/ThemeProvider';
-import { Loader2, Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react';
+import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3 } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 
 function App() {
-  const { user, userCurrency, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
+  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
 
   if (loading) {
     return (
@@ -31,6 +32,7 @@ function App() {
       <MainLayout 
         user={user}
         userCurrency={userCurrency}
+        userStats={userStats}
         globalStats={globalStats}
         chatMessages={chatMessages}
         error={error}
@@ -48,9 +50,10 @@ function App() {
   );
 }
 
-function MainLayout({ user, userCurrency, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline, loading }: {
+function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline, loading }: {
   user: any;
   userCurrency: any;
+  userStats: any;
   globalStats: any;
   chatMessages: any;
   error: string | null;
@@ -65,6 +68,7 @@ function MainLayout({ user, userCurrency, globalStats, chatMessages, error, incr
   loading: boolean;
 }) {
   const [soundEnabled, setSoundEnabled] = React.useState(audioManager.isAudioEnabled());
+  const [showStatsMenu, setShowStatsMenu] = React.useState(false);
   const { currentTheme } = useTheme();
 
   const toggleSound = () => {
@@ -77,6 +81,11 @@ function MainLayout({ user, userCurrency, globalStats, chatMessages, error, incr
     if (newState) {
       setTimeout(() => audioManager.playClickSound(), 100);
     }
+  };
+
+  const toggleStatsMenu = () => {
+    audioManager.playGuiSound();
+    setShowStatsMenu(!showStatsMenu);
   };
 
   return (
@@ -129,6 +138,32 @@ function MainLayout({ user, userCurrency, globalStats, chatMessages, error, incr
             )}
           </div>
         </header>
+
+        {/* Stats Menu Toggle Button */}
+        <div className="fixed top-4 right-4 z-40">
+          <button
+            onClick={toggleStatsMenu}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
+            style={{
+              backgroundColor: `${currentTheme.colors.primary}90`,
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${currentTheme.colors.primary}30`
+            }}
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span className="hidden sm:inline">Stats</span>
+          </button>
+        </div>
+
+        {/* Stats Menu */}
+        <StatsMenu
+          isOpen={showStatsMenu}
+          onClose={() => setShowStatsMenu(false)}
+          user={user}
+          userStats={userStats}
+          userCurrency={userCurrency}
+          globalStats={globalStats}
+        />
 
         <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Left Column - Stats */}
