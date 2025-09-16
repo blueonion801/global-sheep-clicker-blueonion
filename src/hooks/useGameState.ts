@@ -108,15 +108,21 @@ export const useGameState = () => {
         highest_daily_clicks: parseInt(localStorage.getItem('offline_highest_daily_clicks') || '0'),
         longest_coin_streak: parseInt(localStorage.getItem('offline_longest_coin_streak') || '0'),
         total_days_active: parseInt(localStorage.getItem('offline_total_days_active') || '1'),
-        first_click_date: localStorage.getItem('offline_first_click_date'),
+        first_click_date: new Date().toISOString().split('T')[0], // Start from today for new feature
         last_active_date: new Date().toISOString().split('T')[0],
-        daily_click_history: JSON.parse(localStorage.getItem('offline_daily_click_history') || '{}'),
+        daily_click_history: {}, // Start fresh for new feature
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
     }
 
     try {
+      // First, get existing message count from chat_messages table
+      const { count: existingMessageCount } = await supabase
+        .from('chat_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
       const { data, error } = await supabase
         .from('user_stats')
         .select('*')
@@ -129,15 +135,16 @@ export const useGameState = () => {
 
       if (!data) {
         // Create initial stats record
+        const today = new Date().toISOString().split('T')[0];
         const initialStats: UserStats = {
           user_id: userId,
-          messages_sent: 0,
+          messages_sent: existingMessageCount || 0, // Include existing messages
           highest_daily_clicks: 0,
           longest_coin_streak: 0,
           total_days_active: 1,
-          first_click_date: new Date().toISOString().split('T')[0],
-          last_active_date: new Date().toISOString().split('T')[0],
-          daily_click_history: {},
+          first_click_date: today, // Start tracking from today
+          last_active_date: today,
+          daily_click_history: {}, // Start fresh for accurate daily averages
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
@@ -164,9 +171,9 @@ export const useGameState = () => {
         highest_daily_clicks: parseInt(localStorage.getItem('offline_highest_daily_clicks') || '0'),
         longest_coin_streak: parseInt(localStorage.getItem('offline_longest_coin_streak') || '0'),
         total_days_active: parseInt(localStorage.getItem('offline_total_days_active') || '1'),
-        first_click_date: localStorage.getItem('offline_first_click_date'),
+        first_click_date: new Date().toISOString().split('T')[0],
         last_active_date: new Date().toISOString().split('T')[0],
-        daily_click_history: JSON.parse(localStorage.getItem('offline_daily_click_history') || '{}'),
+        daily_click_history: {},
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
