@@ -13,7 +13,7 @@ import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3 } from 'lucide-reac
 import { audioManager } from './utils/audioManager';
 
 function App() {
-  const { user, userCurrency, userStats, globalStats, chatMessages, loadMoreMessages, loading, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
+  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
 
   if (loading) {
     return (
@@ -35,7 +35,6 @@ function App() {
         userStats={userStats}
         globalStats={globalStats}
         chatMessages={chatMessages}
-        loadMoreMessages={loadMoreMessages}
         error={error}
         incrementSheep={incrementSheep}
         claimDailyReward={claimDailyReward}
@@ -57,7 +56,6 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   userStats: any;
   globalStats: any;
   chatMessages: any;
-  loadMoreMessages: (beforeDate: string) => Promise<any[]>;
   error: string | null;
   incrementSheep: () => void;
   claimDailyReward: () => void;
@@ -209,7 +207,6 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
             <Chat 
               messages={chatMessages} 
               onSendMessage={sendMessage}
-              onLoadMoreMessages={loadMoreMessages}
               disabled={loading || isOffline}
               isOffline={isOffline}
             />
