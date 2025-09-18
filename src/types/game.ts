@@ -180,7 +180,7 @@ export const THEMES: Theme[] = [
     id: 'coral',
     name: 'coral',
     displayName: 'Coral Reef',
-    cost: 300,
+    cost: 500,
     description: 'Tropical coral theme with warm ocean vibes',
     colors: {
       primary: '#FF7F7F',
@@ -194,7 +194,7 @@ export const THEMES: Theme[] = [
     id: 'rainbow',
     name: 'rainbow',
     displayName: 'Rainbow Spectrum',
-    cost: 400,
+    cost: 750,
     description: 'Vibrant rainbow theme with shifting colors',
     colors: {
       primary: '#FF6B6B',
@@ -208,7 +208,7 @@ export const THEMES: Theme[] = [
     id: 'galaxy',
     name: 'galaxy',
     displayName: 'Cosmic Galaxy',
-    cost: 500,
+    cost: 1000,
     description: 'Premium galaxy theme with stellar highlights',
     colors: {
       primary: '#9D4EDD',

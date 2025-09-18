@@ -140,7 +140,6 @@ export const WoolShop: React.FC<WoolShopProps> = ({
             const isUnlocked = userCurrency.unlocked_themes.includes(theme.id);
             const isSelected = userCurrency.selected_theme === theme.id;
             const canAfford = userCurrency.wool_coins >= theme.cost;
-            const isPremium = theme.cost >= 250;
             
             return (
               <div
@@ -170,19 +169,18 @@ export const WoolShop: React.FC<WoolShopProps> = ({
                       />
                       <h5 
                         className={`font-semibold ${
-                          isPremium && theme.id === 'rainbow'
+                          theme.id === 'rainbow'
                             ? 'bg-gradient-to-r from-red-400 via-yellow-400 via-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse'
-                            : isPremium && theme.id === 'neon'
+                            : theme.id === 'neon'
                               ? 'bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent'
-                              : isPremium && theme.id === 'coral'
+                              : theme.id === 'coral'
                                 ? 'bg-gradient-to-r from-pink-400 to-turquoise-400 bg-clip-text text-transparent'
-                                : isPremium && theme.id === 'galaxy'
+                                : theme.id === 'galaxy'
                                   ? 'bg-gradient-to-r from-purple-400 via-blue-300 to-yellow-300 bg-clip-text text-transparent'
                                   : 'text-white'
                         }`}
                       >
                         {theme.displayName}
-                        {isPremium && <span className="ml-2 text-yellow-400">✨</span>}
                       </h5>
                     </div>
                     <p className="text-sm text-gray-400 mb-2">{theme.description}</p>
@@ -193,11 +191,6 @@ export const WoolShop: React.FC<WoolShopProps> = ({
                         <span className={`font-medium ${canAfford ? 'text-yellow-400' : 'text-gray-500'}`}>
                           {theme.cost} Wool Coins
                         </span>
-                        {isPremium && (
-                          <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent font-bold">
-                            PREMIUM
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>
@@ -250,7 +243,7 @@ export const WoolShop: React.FC<WoolShopProps> = ({
             <li>• Earn 1+ coins every 100 sheep clicks (Shepherd tier required)</li>
             <li>• Claim daily rewards (5+ coins, streak bonuses up to +10)</li>
             <li>• Higher tiers earn more coins per 100 clicks</li>
-            <li>• Premium themes (250+ coins) offer unique visual experiences</li>
+            <li>• High-end themes (250+ coins) offer unique visual experiences</li>
           </ul>
         </div>
       </div>
