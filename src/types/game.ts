@@ -175,48 +175,6 @@ export const THEMES: Theme[] = [
       background: 'from-black via-gray-900 to-black'
     },
     gradient: 'from-cyan-400 to-pink-400'
-  },
-  {
-    id: 'coral',
-    name: 'coral',
-    displayName: 'Coral Reef',
-    cost: 500,
-    description: 'Tropical coral theme with warm ocean vibes',
-    colors: {
-      primary: '#FF7F7F',
-      secondary: '#40E0D0',
-      accent: '#FFD700',
-      background: 'from-pink-100 via-coral-50 to-turquoise-100'
-    },
-    gradient: 'from-pink-400 to-turquoise-400'
-  },
-  {
-    id: 'rainbow',
-    name: 'rainbow',
-    displayName: 'Rainbow Spectrum',
-    cost: 750,
-    description: 'Vibrant rainbow theme with shifting colors',
-    colors: {
-      primary: '#FF6B6B',
-      secondary: '#4ECDC4',
-      accent: '#45B7D1',
-      background: 'from-red-200 via-yellow-200 via-green-200 via-blue-200 to-purple-200'
-    },
-    gradient: 'from-red-400 via-yellow-400 via-green-400 via-blue-400 to-purple-400'
-  },
-  {
-    id: 'galaxy',
-    name: 'galaxy',
-    displayName: 'Cosmic Galaxy',
-    cost: 1000,
-    description: 'Premium galaxy theme with stellar highlights',
-    colors: {
-      primary: '#9D4EDD',
-      secondary: '#7209B7',
-      accent: '#FFD60A',
-      background: 'from-purple-900 via-indigo-900 to-black'
-    },
-    gradient: 'from-purple-400 via-blue-300 to-yellow-300'
   }
 ];
 

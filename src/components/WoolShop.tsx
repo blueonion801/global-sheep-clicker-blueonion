@@ -169,15 +169,9 @@ export const WoolShop: React.FC<WoolShopProps> = ({
                       />
                       <h5 
                         className={`font-semibold ${
-                          theme.id === 'rainbow'
-                            ? 'bg-gradient-to-r from-red-400 via-yellow-400 via-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-pulse'
-                            : theme.id === 'neon'
+                          theme.id === 'neon'
                               ? 'bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent'
-                              : theme.id === 'coral'
-                                ? 'bg-gradient-to-r from-pink-400 to-turquoise-400 bg-clip-text text-transparent'
-                                : theme.id === 'galaxy'
-                                  ? 'bg-gradient-to-r from-purple-400 via-blue-300 to-yellow-300 bg-clip-text text-transparent'
-                                  : 'text-white'
+                              : 'text-white'
                         }`}
                       >
                         {theme.displayName}
@@ -243,7 +237,7 @@ export const WoolShop: React.FC<WoolShopProps> = ({
             <li>• Earn 1+ coins every 100 sheep clicks (Shepherd tier required)</li>
             <li>• Claim daily rewards (5+ coins, streak bonuses up to +10)</li>
             <li>• Higher tiers earn more coins per 100 clicks</li>
-            <li>• High-end themes (250+ coins) offer unique visual experiences</li>
+            <li>• Premium themes offer unique visual experiences</li>
           </ul>
         </div>
       </div>
