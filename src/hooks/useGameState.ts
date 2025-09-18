@@ -468,7 +468,7 @@ export const useGameState = () => {
         .from('chat_messages')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(100); // Increased limit for better pagination
+        .limit(50);
 
       if (error) {
         throw new Error(`Failed to fetch chat messages: ${error.message}`);
@@ -486,32 +486,6 @@ export const useGameState = () => {
       return [];
     }
   };
-
-  const loadMoreMessages = useCallback(async (beforeDate: string): Promise<ChatMessage[]> => {
-    if (isOfflineMode(forceOffline)) {
-      return [];
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .lt('created_at', beforeDate)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        throw new Error(`Failed to load more messages: ${error.message}`);
-      }
-
-      // Add to existing messages
-      setChatMessages(prev => [...prev, ...(data || [])]);
-      return data || [];
-    } catch (err) {
-      console.warn('Failed to load more messages:', err);
-      return [];
-    }
-  }, [forceOffline]);
 
   const initializeData = async () => {
     setLoading(true);
@@ -827,7 +801,6 @@ export const useGameState = () => {
     userStats,
     globalStats,
     chatMessages,
-    loadMoreMessages,
     isOffline: isOfflineMode(forceOffline),
     loading,
     error,
