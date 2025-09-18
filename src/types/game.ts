@@ -161,6 +161,20 @@ export const THEMES: Theme[] = [
       background: 'from-slate-900 via-blue-900 to-indigo-900'
     },
     gradient: 'from-blue-400 to-indigo-400'
+  },
+  {
+    id: 'neon',
+    name: 'neon',
+    displayName: 'Neon Cyber',
+    cost: 250,
+    description: 'Futuristic dark theme with vibrant neon highlights',
+    colors: {
+      primary: '#00FFFF',
+      secondary: '#FF00FF',
+      accent: '#00FF00',
+      background: 'from-black via-gray-900 to-black'
+    },
+    gradient: 'from-cyan-400 to-pink-400'
   }
 ];
 
