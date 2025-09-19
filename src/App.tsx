@@ -212,6 +212,10 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
 
           {/* Right Column - Chat and Wool Shop */}
           <div className="space-y-8 xl:order-3">
+            <Leaderboard 
+              currentUser={user}
+              isOffline={isOffline}
+            />
             <Chat 
               messages={chatMessages} 
               onSendMessage={sendMessage}
@@ -250,14 +254,6 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
         {/* Mobile Tiers List - shown only on mobile, placed at bottom */}
         <div className="lg:hidden mt-8">
           <TiersList user={user} />
-        </div>
-
-        {/* Mobile Leaderboard - shown only on mobile */}
-        <div className="lg:hidden mt-8">
-          <Leaderboard 
-            currentUser={user}
-            isOffline={isOffline}
-          />
         </div>
 
         {/* Footer */}
