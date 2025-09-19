@@ -9,6 +9,7 @@ import { WoolShop } from './components/WoolShop';
 import { StatsMenu } from './components/StatsMenu';
 import { ThemeProvider } from './components/ThemeProvider';
 import { useTheme } from './components/ThemeProvider';
+import { Leaderboard } from './components/Leaderboard';
 import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3 } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 
@@ -204,6 +205,10 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
 
           {/* Right Column - Chat and Wool Shop */}
           <div className="space-y-8 xl:order-3">
+            <Leaderboard 
+              currentUser={user}
+              isOffline={isOffline}
+            />
             <Chat 
               messages={chatMessages} 
               onSendMessage={sendMessage}
