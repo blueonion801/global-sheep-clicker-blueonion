@@ -9,6 +9,7 @@ import { WoolShop } from './components/WoolShop';
 import { StatsMenu } from './components/StatsMenu';
 import { ThemeProvider } from './components/ThemeProvider';
 import { useTheme } from './components/ThemeProvider';
+import { Leaderboard } from './components/Leaderboard';
 import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3 } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 
@@ -174,6 +175,13 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
               onUpdateNickname={updateNickname}
               onUpdateTier={updateTier}
             />
+            {/* Leaderboard - hidden on mobile, shown on desktop */}
+            <div className="hidden lg:block">
+              <Leaderboard 
+                currentUser={user}
+                isOffline={isOffline}
+              />
+            </div>
             {/* Tiers list - hidden on mobile, shown on desktop */}
             <div className="hidden lg:block">
               <TiersList user={user} />
@@ -242,6 +250,14 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
         {/* Mobile Tiers List - shown only on mobile, placed at bottom */}
         <div className="lg:hidden mt-8">
           <TiersList user={user} />
+        </div>
+
+        {/* Mobile Leaderboard - shown only on mobile */}
+        <div className="lg:hidden mt-8">
+          <Leaderboard 
+            currentUser={user}
+            isOffline={isOffline}
+          />
         </div>
 
         {/* Footer */}
