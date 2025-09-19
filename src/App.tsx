@@ -175,13 +175,6 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
               onUpdateNickname={updateNickname}
               onUpdateTier={updateTier}
             />
-            {/* Leaderboard - hidden on mobile, shown on desktop */}
-            <div className="hidden lg:block">
-              <Leaderboard 
-                currentUser={user}
-                isOffline={isOffline}
-              />
-            </div>
             {/* Tiers list - hidden on mobile, shown on desktop */}
             <div className="hidden lg:block">
               <TiersList user={user} />
