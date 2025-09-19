@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Coins, Palette, Calendar, Flame, Gift } from 'lucide-react';
+import { Coins, Palette, Calendar, Flame, Gift, ChevronDown, ChevronUp } from 'lucide-react';
 import { UserCurrency, THEMES, DailyReward } from '../types/game';
 import { audioManager } from '../utils/audioManager';
 import { useTheme } from './ThemeProvider';
@@ -21,6 +21,7 @@ export const WoolShop: React.FC<WoolShopProps> = ({
 }) => {
   const [isClaimingReward, setIsClaimingReward] = useState(false);
   const [lastReward, setLastReward] = useState<DailyReward | null>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
   const { currentTheme } = useTheme();
 
   const canClaimDaily = () => {
@@ -60,14 +61,31 @@ export const WoolShop: React.FC<WoolShopProps> = ({
     onSelectTheme(themeId);
   };
 
+  const toggleExpanded = () => {
+    audioManager.playGuiSound();
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden">
       {/* Header */}
       <div className="p-6 border-b border-gray-700/50">
-        <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-2">
-          <Coins className="text-yellow-400" />
-          Wool Shop
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <Coins className="text-yellow-400" />
+            Wool Shop
+          </h3>
+          <button
+            onClick={toggleExpanded}
+            className="text-gray-400 hover:text-white transition-colors p-1 rounded"
+          >
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </button>
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Coins className="w-5 h-5 text-yellow-400" />
@@ -129,7 +147,7 @@ export const WoolShop: React.FC<WoolShopProps> = ({
       )}
 
       {/* Themes */}
-      <div className="p-6">
+      {isExpanded && (<div className="p-6">
         <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <Palette style={{ color: currentTheme.colors.primary }} />
           Themes
@@ -241,6 +259,6 @@ export const WoolShop: React.FC<WoolShopProps> = ({
           </ul>
         </div>
       </div>
-    </div>
+    )}</div>
   );
 };

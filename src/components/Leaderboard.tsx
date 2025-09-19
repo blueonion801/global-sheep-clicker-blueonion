@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Crown, Medal, TrendingUp } from 'lucide-react';
+import { Trophy, Crown, Medal, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { User, TIERS } from '../types/game';
 import { useTheme } from './ThemeProvider';
+import { audioManager } from '../utils/audioManager';
 
 interface LeaderboardProps {
   currentUser: User | null;
@@ -20,6 +21,7 @@ interface LeaderboardEntry {
 export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline }) => {
   const [topPlayers, setTopPlayers] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(true);
   const { currentTheme } = useTheme();
 
   const fetchLeaderboard = async () => {
@@ -139,13 +141,30 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
     return currentUser?.id === playerId;
   };
 
+  const toggleExpanded = () => {
+    audioManager.playGuiSound();
+    setIsExpanded(!isExpanded);
+  };
+
   if (loading) {
     return (
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
-        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Trophy style={{ color: currentTheme.colors.accent }} />
-          Leaderboard
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <Trophy style={{ color: currentTheme.colors.accent }} />
+            Top Sheep Clickers
+          </h3>
+          <button
+            onClick={toggleExpanded}
+            className="text-gray-400 hover:text-white transition-colors p-1 rounded"
+          >
+            {isExpanded ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </button>
+        </div>
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse">
@@ -159,12 +178,24 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
-      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <Trophy style={{ color: currentTheme.colors.accent }} />
-        Top Sheep Clickers
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <Trophy style={{ color: currentTheme.colors.accent }} />
+          Top Sheep Clickers
+        </h3>
+        <button
+          onClick={toggleExpanded}
+          className="text-gray-400 hover:text-white transition-colors p-1 rounded"
+        >
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5" />
+          ) : (
+            <ChevronDown className="w-5 h-5" />
+          )}
+        </button>
+      </div>
       
-      {isOffline && (
+      {isExpanded && isOffline && (
         <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/30 rounded-lg">
           <p className="text-yellow-400 text-sm">
             ⚠️ Showing sample data - Connect to see real leaderboard
@@ -172,7 +203,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
         </div>
       )}
 
-      <div className="space-y-3">
+      {isExpanded && (<div className="space-y-3">
         {topPlayers.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
             <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -270,10 +301,10 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
             );
           })
         )}
-      </div>
+      </div>)}
 
       {/* Info section */}
-      <div className="mt-4 p-3 bg-blue-600/10 border border-blue-500/30 rounded-lg">
+      {isExpanded && (<div className="mt-4 p-3 bg-blue-600/10 border border-blue-500/30 rounded-lg">
         <p className="text-blue-400 text-sm font-medium mb-1">🏆 Leaderboard Info</p>
         <ul className="text-xs text-gray-300 space-y-1">
           <li>• Rankings update in real-time as players click</li>
@@ -281,6 +312,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
           <li>• Your position is highlighted when you're in the top 3</li>
         </ul>
       </div>
-    </div>
+    )}</div>
   );
 };
