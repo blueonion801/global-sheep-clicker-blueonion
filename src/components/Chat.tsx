@@ -26,8 +26,17 @@ export const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled, i
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (isExpanded) {
+      scrollToBottom();
+    }
   }, [messages]);
+
+  useEffect(() => {
+    if (isExpanded) {
+      // Scroll to bottom when chat is expanded
+      setTimeout(() => scrollToBottom(), 100);
+    }
+  }, [isExpanded]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
