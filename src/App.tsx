@@ -69,6 +69,10 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   loading: boolean;
 }) {
   const [soundEnabled, setSoundEnabled] = React.useState(audioManager.isAudioEnabled());
+  const [hintsEnabled, setHintsEnabled] = React.useState(() => {
+    const saved = localStorage.getItem('hintsEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [showStatsMenu, setShowStatsMenu] = React.useState(false);
   const { currentTheme } = useTheme();
 
@@ -82,6 +86,13 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
     if (newState) {
       setTimeout(() => audioManager.playClickSound(), 100);
     }
+  };
+
+  const toggleHints = () => {
+    audioManager.playGuiSound();
+    const newState = !hintsEnabled;
+    setHintsEnabled(newState);
+    localStorage.setItem('hintsEnabled', JSON.stringify(newState));
   };
 
   const toggleStatsMenu = () => {
