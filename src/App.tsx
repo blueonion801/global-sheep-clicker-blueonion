@@ -314,6 +314,9 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
             </div>
           </div>
         </footer>
+
+        {/* Mobile footer spacer to prevent "made in bolt" button overlap */}
+        <div className="block sm:hidden h-16"></div>
       </div>
     </div>
   );
