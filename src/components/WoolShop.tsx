@@ -10,6 +10,7 @@ interface WoolShopProps {
   onPurchaseTheme: (themeId: string) => Promise<boolean>;
   onSelectTheme: (themeId: string) => void;
   disabled?: boolean;
+  hintsEnabled?: boolean;
 }
 
 export const WoolShop: React.FC<WoolShopProps> = ({ 
@@ -17,7 +18,8 @@ export const WoolShop: React.FC<WoolShopProps> = ({
   onClaimDailyReward, 
   onPurchaseTheme, 
   onSelectTheme,
-  disabled 
+  disabled,
+  hintsEnabled = true
 }) => {
   const [isClaimingReward, setIsClaimingReward] = useState(false);
   const [lastReward, setLastReward] = useState<DailyReward | null>(null);
@@ -249,7 +251,7 @@ export const WoolShop: React.FC<WoolShopProps> = ({
           })}
         </div>
         
-        <div className="mt-6 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
+        {hintsEnabled && (<div className="mt-6 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
           <h5 className="text-blue-400 font-medium mb-2">💡 How to earn Wool Coins:</h5>
           <ul className="text-sm text-gray-300 space-y-1">
             <li>• Earn 1+ coins every 100 sheep clicks (Shepherd tier required)</li>
@@ -257,7 +259,7 @@ export const WoolShop: React.FC<WoolShopProps> = ({
             <li>• Higher tiers earn more coins per 100 clicks</li>
             <li>• Premium themes offer unique visual experiences</li>
           </ul>
-        </div>
+        </div>)}
       </div>
     )}</div>
   );

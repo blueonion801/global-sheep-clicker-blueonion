@@ -18,7 +18,8 @@ export const StatsMenu: React.FC<StatsMenuProps> = ({
   user,
   userStats,
   userCurrency,
-  globalStats
+  globalStats,
+  hintsEnabled = true
 }) => {
   const { currentTheme } = useTheme();
 
@@ -139,7 +140,7 @@ export const StatsMenu: React.FC<StatsMenuProps> = ({
           </div>
 
           {/* Additional Info */}
-          <div className="mt-6 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
+          {hintsEnabled && (<div className="mt-6 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
             <h4 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Statistics Info
@@ -150,7 +151,7 @@ export const StatsMenu: React.FC<StatsMenuProps> = ({
               <li>• Global contribution shows your impact on the worldwide sheep count</li>
               <li>• Streak tracking helps you maintain consistent daily rewards</li>
             </ul>
-          </div>
+          </div>)}
 
           {/* Account Info */}
           {userStats?.first_click_date && (

@@ -8,6 +8,7 @@ import { audioManager } from '../utils/audioManager';
 interface LeaderboardProps {
   currentUser: User | null;
   isOffline: boolean;
+  hintsEnabled?: boolean;
 }
 
 interface LeaderboardEntry {
@@ -18,7 +19,7 @@ interface LeaderboardEntry {
   rank: number;
 }
 
-export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline }) => {
+export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline, hintsEnabled = true }) => {
   const [topPlayers, setTopPlayers] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -304,7 +305,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
       </div>)}
 
       {/* Info section */}
-      {isExpanded && (<div className="mt-4 p-3 bg-blue-600/10 border border-blue-500/30 rounded-lg">
+      {isExpanded && hintsEnabled && (<div className="mt-4 p-3 bg-blue-600/10 border border-blue-500/30 rounded-lg">
         <p className="text-blue-400 text-sm font-medium mb-1">🏆 Leaderboard Info</p>
         <ul className="text-xs text-gray-300 space-y-1">
           <li>• Rankings update in real-time as players click</li>
