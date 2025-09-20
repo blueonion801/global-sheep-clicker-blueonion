@@ -148,7 +148,18 @@ export const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled, i
                 placeholder={disabled ? "Loading..." : "Type a message..."}
                 disabled={disabled || isOffline}
                 maxLength={200}
-                className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 disabled:opacity-50"
+                className="flex-1 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none disabled:opacity-50 transition-colors"
+                style={{
+                  '--focus-color': currentTheme.colors.primary
+                } as React.CSSProperties}
+                onFocus={(e) => {
+                  e.target.style.borderColor = currentTheme.colors.primary;
+                  e.target.style.boxShadow = `0 0 0 1px ${currentTheme.colors.primary}`;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#4B5563';
+                  e.target.style.boxShadow = 'none';
+                }}
               />
               <button
                 type="submit"
