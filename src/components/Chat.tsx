@@ -15,7 +15,10 @@ export const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled, i
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = localStorage.getItem('chatExpanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const { currentTheme } = useTheme();
 
   const scrollToBottom = () => {
@@ -48,7 +51,9 @@ export const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled, i
 
   const toggleExpanded = () => {
     audioManager.playGuiSound();
-    setIsExpanded(!isExpanded);
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    localStorage.setItem('chatExpanded', JSON.stringify(newState));
   };
 
   return (

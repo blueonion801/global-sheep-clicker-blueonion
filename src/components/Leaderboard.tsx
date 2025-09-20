@@ -22,7 +22,10 @@ interface LeaderboardEntry {
 export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline, hintsEnabled = true }) => {
   const [topPlayers, setTopPlayers] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = localStorage.getItem('leaderboardExpanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const { currentTheme } = useTheme();
 
   const fetchLeaderboard = async () => {
@@ -144,7 +147,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
 
   const toggleExpanded = () => {
     audioManager.playGuiSound();
-    setIsExpanded(!isExpanded);
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    localStorage.setItem('leaderboardExpanded', JSON.stringify(newState));
   };
 
   if (loading) {

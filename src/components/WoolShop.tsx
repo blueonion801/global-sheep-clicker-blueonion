@@ -23,7 +23,10 @@ export const WoolShop: React.FC<WoolShopProps> = ({
 }) => {
   const [isClaimingReward, setIsClaimingReward] = useState(false);
   const [lastReward, setLastReward] = useState<DailyReward | null>(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = localStorage.getItem('woolShopExpanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const { currentTheme } = useTheme();
 
   const canClaimDaily = () => {
@@ -65,7 +68,9 @@ export const WoolShop: React.FC<WoolShopProps> = ({
 
   const toggleExpanded = () => {
     audioManager.playGuiSound();
-    setIsExpanded(!isExpanded);
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    localStorage.setItem('woolShopExpanded', JSON.stringify(newState));
   };
 
   return (

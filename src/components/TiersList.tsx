@@ -9,12 +9,17 @@ interface TiersListProps {
 }
 
 export const TiersList: React.FC<TiersListProps> = ({ user }) => {
-  const [isExpanded, setIsExpanded] = React.useState(true);
+  const [isExpanded, setIsExpanded] = React.useState(() => {
+    const saved = localStorage.getItem('tiersListExpanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const { currentTheme } = useTheme();
 
   const toggleExpanded = () => {
     audioManager.playGuiSound();
-    setIsExpanded(!isExpanded);
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    localStorage.setItem('tiersListExpanded', JSON.stringify(newState));
   };
 
   return (
