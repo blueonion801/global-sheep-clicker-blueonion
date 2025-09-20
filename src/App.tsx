@@ -10,7 +10,7 @@ import { StatsMenu } from './components/StatsMenu';
 import { ThemeProvider } from './components/ThemeProvider';
 import { useTheme } from './components/ThemeProvider';
 import { Leaderboard } from './components/Leaderboard';
-import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3 } from 'lucide-react';
+import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 
 function App() {
@@ -69,6 +69,10 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   loading: boolean;
 }) {
   const [soundEnabled, setSoundEnabled] = React.useState(audioManager.isAudioEnabled());
+  const [hintsEnabled, setHintsEnabled] = React.useState(() => {
+    const saved = localStorage.getItem('hintsEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [showStatsMenu, setShowStatsMenu] = React.useState(false);
   const { currentTheme } = useTheme();
 
@@ -82,6 +86,13 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
     if (newState) {
       setTimeout(() => audioManager.playClickSound(), 100);
     }
+  };
+
+  const toggleHints = () => {
+    audioManager.playGuiSound();
+    const newState = !hintsEnabled;
+    setHintsEnabled(newState);
+    localStorage.setItem('hintsEnabled', JSON.stringify(newState));
   };
 
   const toggleStatsMenu = () => {
@@ -164,6 +175,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           userStats={userStats}
           userCurrency={userCurrency}
           globalStats={globalStats}
+          hintsEnabled={hintsEnabled}
         />
 
         <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
@@ -208,6 +220,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
             <Leaderboard 
               currentUser={user}
               isOffline={isOffline}
+              hintsEnabled={hintsEnabled}
             />
             <Chat 
               messages={chatMessages} 
@@ -225,6 +238,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
                   onPurchaseTheme={purchaseTheme}
                   onSelectTheme={selectTheme}
                   disabled={loading || isOffline}
+                  hintsEnabled={hintsEnabled}
                 />
               </div>
             )}
@@ -240,6 +254,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
               onPurchaseTheme={purchaseTheme}
               onSelectTheme={selectTheme}
               disabled={loading || isOffline}
+              hintsEnabled={hintsEnabled}
             />
           </div>
         )}
@@ -256,7 +271,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           
           {/* Sound Settings - moved to bottom */}
           <div className="flex justify-center pt-4 border-t border-gray-700/30">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-6">
               <span className="text-gray-400 text-xs">Sound Effects:</span>
               <button
                 onClick={toggleSound}
@@ -275,6 +290,26 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
               >
                 {soundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
                 <span>{soundEnabled ? 'On' : 'Off'}</span>
+              </button>
+              
+              <span className="text-gray-400 text-xs">Hint Boxes:</span>
+              <button
+                onClick={toggleHints}
+                className={`
+                  flex items-center gap-2 px-3 py-1 rounded-lg transition-all text-xs
+                  ${hintsEnabled 
+                    ? 'border' 
+                    : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/50 border border-gray-600/30'
+                  }
+                `}
+                style={hintsEnabled ? {
+                  backgroundColor: `${currentTheme.colors.primary}20`,
+                  color: currentTheme.colors.primary,
+                  borderColor: `${currentTheme.colors.primary}50`
+                } : {}}
+              >
+                {hintsEnabled ? <HelpCircle className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                <span>{hintsEnabled ? 'On' : 'Off'}</span>
               </button>
             </div>
           </div>
