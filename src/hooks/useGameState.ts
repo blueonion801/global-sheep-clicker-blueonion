@@ -64,10 +64,14 @@ export const useGameState = () => {
         const initialCurrency: UserCurrency = {
           user_id: userId,
           wool_coins: 0,
+          sheep_gems: 0,
           last_daily_claim: null,
+          last_gem_claim: null,
           consecutive_days: 0,
           selected_theme: 'cosmic',
           unlocked_themes: ['cosmic'],
+          selected_sheep_emoji: '🐑',
+          selected_particle: '✧',
           updated_at: new Date().toISOString()
         };
 
