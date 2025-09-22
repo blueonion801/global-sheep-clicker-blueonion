@@ -40,10 +40,14 @@ export const useGameState = () => {
       return {
         user_id: userId,
         wool_coins: parseInt(localStorage.getItem('offline_wool_coins') || '0'),
+        sheep_gems: parseInt(localStorage.getItem('offline_sheep_gems') || '0'),
         last_daily_claim: localStorage.getItem('offline_last_daily_claim'),
+        last_gem_claim: localStorage.getItem('offline_last_gem_claim'),
         consecutive_days: parseInt(localStorage.getItem('offline_consecutive_days') || '0'),
         selected_theme: localStorage.getItem('offline_selected_theme') || 'cosmic',
         unlocked_themes: JSON.parse(localStorage.getItem('offline_unlocked_themes') || '["cosmic"]'),
+        selected_sheep_emoji: localStorage.getItem('offline_selected_sheep_emoji') || '🐑',
+        selected_particle: localStorage.getItem('offline_selected_particle') || '✧',
         updated_at: new Date().toISOString()
       };
     }
@@ -64,14 +68,10 @@ export const useGameState = () => {
         const initialCurrency: UserCurrency = {
           user_id: userId,
           wool_coins: 0,
-          sheep_gems: 0,
           last_daily_claim: null,
-          last_gem_claim: null,
           consecutive_days: 0,
           selected_theme: 'cosmic',
           unlocked_themes: ['cosmic'],
-          selected_sheep_emoji: '🐑',
-          selected_particle: '✧',
           updated_at: new Date().toISOString()
         };
 
@@ -94,10 +94,14 @@ export const useGameState = () => {
       return {
         user_id: userId,
         wool_coins: parseInt(localStorage.getItem('offline_wool_coins') || '0'),
+        sheep_gems: parseInt(localStorage.getItem('offline_sheep_gems') || '0'),
         last_daily_claim: localStorage.getItem('offline_last_daily_claim'),
+        last_gem_claim: localStorage.getItem('offline_last_gem_claim'),
         consecutive_days: parseInt(localStorage.getItem('offline_consecutive_days') || '0'),
         selected_theme: localStorage.getItem('offline_selected_theme') || 'cosmic',
         unlocked_themes: JSON.parse(localStorage.getItem('offline_unlocked_themes') || '["cosmic"]'),
+        selected_sheep_emoji: localStorage.getItem('offline_selected_sheep_emoji') || '🐑',
+        selected_particle: localStorage.getItem('offline_selected_particle') || '✧',
         updated_at: new Date().toISOString()
       };
     }
@@ -921,63 +925,4 @@ export const useGameState = () => {
       return;
     }
 
-    // Set up real-time subscriptions
-    const statsSubscription = supabase
-      .channel('global_stats')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'global_stats'
-      }, (payload) => {
-        setGlobalStats(payload.new as GlobalStats);
-      })
-      .subscribe();
-
-    const chatSubscription = supabase
-      .channel('chat_messages')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'chat_messages'
-      }, (payload) => {
-        // Play gentle notification sound for new messages (but not from current user)
-        const newMessage = payload.new as ChatMessage;
-        if (user && newMessage.user_id !== user.id) {
-          audioManager.playNotificationSound();
-        }
-        setChatMessages(prev => [payload.new as ChatMessage, ...prev.slice(0, 49)]);
-      })
-      .subscribe();
-
-    return () => {
-      statsSubscription.unsubscribe();
-      chatSubscription.unsubscribe();
-    };
-  }, [forceOffline, user]);
-
-  return {
-    user,
-    userCurrency,
-    userStats,
-    globalStats,
-    chatMessages,
-    isOffline: isOfflineMode(forceOffline),
-    loading,
-    error,
-    incrementSheep,
-    claimDailyReward,
-    claimDailyGems,
-    openEmbroideredBox,
-    purchaseCollectible,
-    selectCollectible,
-    claimDailyGems,
-    openEmbroideredBox,
-    purchaseCollectible,
-    selectCollectible,
-    purchaseTheme,
-    selectTheme,
-    sendMessage,
-    updateNickname,
-    updateTier
-  };
-};
+    //
