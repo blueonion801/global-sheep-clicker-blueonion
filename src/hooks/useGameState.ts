@@ -300,6 +300,162 @@ export const useGameState = () => {
     return true;
   }, [user, userCurrency, forceOffline]);
 
+  const claimDailyGems = useCallback(async (): Promise<void> => {
+    if (!user || !userCurrency) return;
+
+    audioManager.playGuiSound();
+
+    const now = new Date();
+    const today = now.toDateString();
+    const lastClaim = userCurrency.last_gem_claim ? new Date(userCurrency.last_gem_claim).toDateString() : null;
+
+    // Check if already claimed today
+    if (lastClaim === today) return;
+
+    const updatedCurrency: UserCurrency = {
+      ...userCurrency,
+      sheep_gems: userCurrency.sheep_gems + 1,
+      last_gem_claim: now.toISOString(),
+      updated_at: now.toISOString()
+    };
+
+    setUserCurrency(updatedCurrency);
+
+    if (isOfflineMode(forceOffline)) {
+      localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+      localStorage.setItem('offline_last_gem_claim', updatedCurrency.last_gem_claim);
+    } else {
+      try {
+        await supabase
+          .from('user_currency')
+          .update({
+            sheep_gems: updatedCurrency.sheep_gems,
+            last_gem_claim: updatedCurrency.last_gem_claim,
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Failed to claim daily gems:', error);
+      }
+    }
+  }, [user, userCurrency, forceOffline]);
+
+  const openEmbroideredBox = useCallback(async (boxType: 'daily' | 'purchased'): Promise<any> => {
+    if (!user || !userCurrency) return null;
+
+    // Check if user can open the box
+    if (boxType === 'purchased' && userCurrency.sheep_gems < 15) {
+      return null;
+    }
+
+    audioManager.playTierUpSound();
+
+    // Generate random reward
+    const rand = Math.random();
+    let reward: any;
+
+    if (rand < 0.7) {
+      // 70% chance for coins
+      const amount = Math.floor(Math.random() * 21) + 10; // 10-30 coins
+      reward = {
+        type: 'coins',
+        amount: amount
+      };
+    } else if (rand < 0.9) {
+      // 20% chance for gems
+      const amount = Math.floor(Math.random() * 7) + 2; // 2-8 gems
+      reward = {
+        type: 'gems',
+        amount: amount
+      };
+    } else {
+      // 10% chance for collectible
+      reward = {
+        type: 'collectible',
+        collectible: { id: 'random', name: 'Random Collectible', emoji: '🎁' }
+      };
+    }
+
+    // Update currency based on reward and box cost
+    let updatedCurrency = { ...userCurrency };
+    
+    if (boxType === 'purchased') {
+      updatedCurrency.sheep_gems -= 15;
+    }
+
+    if (reward.type === 'coins') {
+      updatedCurrency.wool_coins += reward.amount;
+    } else if (reward.type === 'gems') {
+      updatedCurrency.sheep_gems += reward.amount;
+    }
+
+    updatedCurrency.updated_at = new Date().toISOString();
+    setUserCurrency(updatedCurrency);
+
+    if (isOfflineMode(forceOffline)) {
+      localStorage.setItem('offline_wool_coins', updatedCurrency.wool_coins.toString());
+      localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+    } else {
+      try {
+        await supabase
+          .from('user_currency')
+          .update({
+            wool_coins: updatedCurrency.wool_coins,
+            sheep_gems: updatedCurrency.sheep_gems,
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Failed to open embroidered box:', error);
+      }
+    }
+
+    return reward;
+  }, [user, userCurrency, forceOffline]);
+
+  const purchaseCollectible = useCallback(async (collectibleId: string): Promise<boolean> => {
+    if (!user || !userCurrency) return false;
+
+    // This would normally fetch collectible data from database
+    // For now, return false to prevent errors
+    audioManager.playGuiSound();
+    return false;
+  }, [user, userCurrency]);
+
+  const selectCollectible = useCallback(async (collectibleId: string, type: 'sheep_emoji' | 'particle'): Promise<void> => {
+    if (!user || !userCurrency) return;
+
+    audioManager.playGuiSound();
+
+    const updatedCurrency: UserCurrency = {
+      ...userCurrency,
+      ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleId } : { selected_particle: collectibleId }),
+      updated_at: new Date().toISOString()
+    };
+
+    setUserCurrency(updatedCurrency);
+
+    if (isOfflineMode(forceOffline)) {
+      if (type === 'sheep_emoji') {
+        localStorage.setItem('offline_selected_sheep_emoji', collectibleId);
+      } else {
+        localStorage.setItem('offline_selected_particle', collectibleId);
+      }
+    } else {
+      try {
+        await supabase
+          .from('user_currency')
+          .update({
+            ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleId } : { selected_particle: collectibleId }),
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Failed to select collectible:', error);
+      }
+    }
+  }, [user, userCurrency, forceOffline]);
+
   const selectTheme = useCallback(async (themeId: string): Promise<void> => {
     if (!user || !userCurrency || !userCurrency.unlocked_themes.includes(themeId)) return;
 
@@ -806,6 +962,10 @@ export const useGameState = () => {
     error,
     incrementSheep,
     claimDailyReward,
+    claimDailyGems,
+    openEmbroideredBox,
+    purchaseCollectible,
+    selectCollectible,
     claimDailyGems,
     openEmbroideredBox,
     purchaseCollectible,
