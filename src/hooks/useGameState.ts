@@ -926,3 +926,42 @@ export const useGameState = () => {
     }
 
     //
+    // Set up real-time subscriptions for chat messages
+    const channel = supabase
+      .channel('chat_messages')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages'
+      }, (payload) => {
+        const newMessage = payload.new as ChatMessage;
+        setChatMessages(prev => [newMessage, ...prev].slice(0, 50));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [forceOffline]);
+
+  return {
+    user,
+    userCurrency,
+    userStats,
+    globalStats,
+    chatMessages,
+    loading,
+    error,
+    incrementSheep,
+    updateTier,
+    sendMessage,
+    updateNickname,
+    claimDailyReward,
+    purchaseTheme,
+    selectTheme,
+    claimDailyGems,
+    openEmbroideredBox,
+    purchaseCollectible,
+    selectCollectible
+  };
+};
