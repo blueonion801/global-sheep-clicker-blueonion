@@ -366,26 +366,52 @@ export const useGameState = () => {
       const rand = Math.random();
       let reward: any;
 
-      if (rand < 0.7) {
-        // 70% chance for coins
+      if (rand < 0.3) {
+        // 30% chance for coins (reduced from 70%)
         const amount = Math.floor(Math.random() * 21) + 10; // 10-30 coins
         reward = {
           type: 'coins',
           amount: amount
         };
-      } else if (rand < 0.9) {
-        // 20% chance for gems
+      } else if (rand < 0.7) {
+        // 40% chance for gems
         const amount = Math.floor(Math.random() * 7) + 2; // 2-8 gems
         reward = {
           type: 'gems',
           amount: amount
         };
       } else {
-        // 10% chance for collectible
-        reward = {
-          type: 'collectible',
-          collectible: { id: 'random', name: 'Random Collectible', emoji: '🎁' }
-        };
+        // 10% chance for collectible (remaining 10%)
+        const collectible = await this.generateRandomCollectible();
+        if (collectible) {
+          reward = {
+            type: 'collectible',
+            collectible: collectible
+          };
+          
+          // Add to user collectibles if not already owned
+          try {
+            await supabase
+              .from('user_collectibles')
+              .insert([{
+                user_id: user.id,
+                collectible_id: collectible.id,
+                obtained_from: 'box'
+              }]);
+          } catch (error) {
+            // Ignore duplicate key errors (already owned)
+            if (!error.message?.includes('duplicate key')) {
+              console.error('Failed to add collectible to user:', error);
+            }
+          }
+        } else {
+          // Fallback to gems if no collectible available
+          const amount = Math.floor(Math.random() * 7) + 2;
+          reward = {
+            type: 'gems',
+            amount: amount
+          };
+        }
       }
       
       rewards.push(reward);
