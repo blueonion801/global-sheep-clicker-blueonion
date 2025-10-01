@@ -382,7 +382,7 @@ export const useGameState = () => {
         };
       } else {
         // 10% chance for collectible (remaining 10%)
-        const collectible = await this.generateRandomCollectible();
+        const collectible = await generateRandomCollectible();
         if (collectible) {
           reward = {
             type: 'collectible',
