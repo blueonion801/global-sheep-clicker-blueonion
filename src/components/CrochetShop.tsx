@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Gem, Gift, ShoppingBag, ChevronDown, ChevronUp, Sparkles, Star } from 'lucide-react';
+import { Package, Gem, Gift, ShoppingBag, ChevronDown, ChevronUp, Sparkles, Star, Coins } from 'lucide-react';
 import { UserCurrency, Collectible, UserCollectible, BoxReward } from '../types/game';
 import { supabase } from '../lib/supabase';
 import { audioManager } from '../utils/audioManager';
