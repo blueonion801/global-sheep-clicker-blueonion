@@ -10,11 +10,12 @@ import { StatsMenu } from './components/StatsMenu';
 import { ThemeProvider } from './components/ThemeProvider';
 import { useTheme } from './components/ThemeProvider';
 import { Leaderboard } from './components/Leaderboard';
+import { CrochetShop } from './components/CrochetShop';
 import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 
 function App() {
-  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
+  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, claimDailyGems, openEmbroideredBox, purchaseCollectible, selectCollectible, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
 
   if (loading) {
     return (
@@ -41,6 +42,14 @@ function App() {
         claimDailyReward={claimDailyReward}
         purchaseTheme={purchaseTheme}
         selectTheme={selectTheme}
+        claimDailyGems={claimDailyGems}
+        openEmbroideredBox={openEmbroideredBox}
+        purchaseCollectible={purchaseCollectible}
+        selectCollectible={selectCollectible}
+        claimDailyGems={claimDailyGems}
+        openEmbroideredBox={openEmbroideredBox}
+        purchaseCollectible={purchaseCollectible}
+        selectCollectible={selectCollectible}
         sendMessage={sendMessage}
         updateNickname={updateNickname}
         updateTier={updateTier}
@@ -51,7 +60,7 @@ function App() {
   );
 }
 
-function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline, loading }: {
+function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, claimDailyGems, openEmbroideredBox, purchaseCollectible, selectCollectible, sendMessage, updateNickname, updateTier, isOffline, loading }: {
   user: any;
   userCurrency: any;
   userStats: any;
@@ -62,6 +71,10 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   claimDailyReward: () => void;
   purchaseTheme: (themeId: string) => void;
   selectTheme: (themeId: string) => void;
+  claimDailyGems: () => void;
+  openEmbroideredBox: (boxType: 'daily' | 'purchased') => Promise<any>;
+  purchaseCollectible: (collectibleId: string) => Promise<boolean>;
+  selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
   sendMessage: (message: string) => void;
   updateNickname: (nickname: string) => void;
   updateTier: (tier: number) => void;
@@ -197,7 +210,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           <div className="flex flex-col items-center justify-center space-y-12 xl:order-2">
             <div className="text-center">
               <h2 className="text-4xl font-bold mb-8">Click the Sheep!</h2>
-              <SheepButton onClick={incrementSheep} disabled={isOffline} />
+              <SheepButton onClick={incrementSheep} disabled={isOffline} userCurrency={userCurrency} />
               <p className="text-gray-400 mt-6 text-base">
                 Every click counts towards the global total
               </p>
@@ -242,6 +255,20 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
                 />
               </div>
             )}
+            {/* Crochet Shop - shown under wool shop on desktop when unlocked */}
+            {user && user.tier >= 5 && userCurrency && (
+              <div className="hidden lg:block">
+                <CrochetShop
+                  userCurrency={userCurrency}
+                  onClaimDailyGems={claimDailyGems}
+                  onOpenBox={openEmbroideredBox}
+                  onPurchaseCollectible={purchaseCollectible}
+                  onSelectCollectible={selectCollectible}
+                  disabled={loading || isOffline}
+                  hintsEnabled={hintsEnabled}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -253,6 +280,22 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
               onClaimDailyReward={claimDailyReward}
               onPurchaseTheme={purchaseTheme}
               onSelectTheme={selectTheme}
+              disabled={loading || isOffline}
+              hintsEnabled={hintsEnabled}
+            />
+            
+          </div>
+        )}
+
+        {/* Mobile/Tablet Crochet Shop - shown when not on desktop and unlocked */}
+        {user && user.tier >= 5 && userCurrency && (
+          <div className="lg:hidden mt-8">
+            <CrochetShop
+              userCurrency={userCurrency}
+              onClaimDailyGems={claimDailyGems}
+              onOpenBox={openEmbroideredBox}
+              onPurchaseCollectible={purchaseCollectible}
+              onSelectCollectible={selectCollectible}
               disabled={loading || isOffline}
               hintsEnabled={hintsEnabled}
             />
