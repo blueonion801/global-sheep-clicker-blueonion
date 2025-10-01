@@ -182,12 +182,13 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
   };
 
   const isCollectibleSelected = (collectibleId: string, type: 'sheep_emoji' | 'particle') => {
+    const collectible = collectibles.find(c => c.id === collectibleId);
+    if (!collectible) return false;
+    
     if (type === 'sheep_emoji') {
-      const collectible = collectibles.find(c => c.id === collectibleId);
-      return collectible?.emoji === userCurrency.selected_sheep_emoji;
+      return collectible.emoji === userCurrency.selected_sheep_emoji;
     } else {
-      const collectible = collectibles.find(c => c.id === collectibleId);
-      return collectible?.emoji === userCurrency.selected_particle;
+      return collectible.emoji === userCurrency.selected_particle;
     }
   };
 

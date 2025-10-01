@@ -498,11 +498,42 @@ export const useGameState = () => {
   const selectCollectible = useCallback(async (collectibleId: string, type: 'sheep_emoji' | 'particle'): Promise<void> => {
     if (!user || !userCurrency) return;
 
+    // Get the collectible to find its emoji
+    let collectibleEmoji = collectibleId;
+    if (!isOfflineMode(forceOffline)) {
+      try {
+        const { data: collectible, error } = await supabase
+          .from('collectibles')
+          .select('emoji')
+          .eq('id', collectibleId)
+          .single();
+
+        if (collectible && !error) {
+          collectibleEmoji = collectible.emoji;
+        }
+      } catch (error) {
+        console.error('Failed to fetch collectible emoji:', error);
+      }
+    } else {
+      // In offline mode, map common IDs to emojis
+      const offlineEmojiMap: Record<string, string> = {
+        'sheep_sheep': '🐑',
+        'sheep_chick': '🐤',
+        'sheep_pig': '🐷',
+        'sheep_cow': '🐄',
+        'particle_star': '✧',
+        'particle_sparkle': '✨',
+        'particle_heart': '💖',
+        'particle_diamond': '💎'
+      };
+      collectibleEmoji = offlineEmojiMap[collectibleId] || collectibleId;
+    }
+
     audioManager.playGuiSound();
 
     const updatedCurrency: UserCurrency = {
       ...userCurrency,
-      ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleId } : { selected_particle: collectibleId }),
+      ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleEmoji } : { selected_particle: collectibleEmoji }),
       updated_at: new Date().toISOString()
     };
 
@@ -510,16 +541,16 @@ export const useGameState = () => {
 
     if (isOfflineMode(forceOffline)) {
       if (type === 'sheep_emoji') {
-        localStorage.setItem('offline_selected_sheep_emoji', collectibleId);
+        localStorage.setItem('offline_selected_sheep_emoji', collectibleEmoji);
       } else {
-        localStorage.setItem('offline_selected_particle', collectibleId);
+        localStorage.setItem('offline_selected_particle', collectibleEmoji);
       }
     } else {
       try {
         await supabase
           .from('user_currency')
           .update({
-            ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleId } : { selected_particle: collectibleId }),
+            ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleEmoji } : { selected_particle: collectibleEmoji }),
             updated_at: updatedCurrency.updated_at
           })
           .eq('user_id', user.id);
