@@ -427,20 +427,28 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                       )}
                       
                       {!isOwned && collectible.rarity !== 'legendary' && (
-                        <button
-                          onClick={() => handlePurchaseCollectible(collectible.id)}
-                          disabled={disabled || (!canAfford && collectible.gem_cost > 0)}
-                          className={`
-                            text-xs px-2 py-1 rounded-full w-full transition-colors flex items-center justify-center gap-1
-                            ${(canAfford || collectible.gem_cost === 0) && !disabled
-                              ? 'bg-green-600 hover:bg-green-700 text-white'
-                              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                            }
-                          `}
-                        >
-                          <Gem className="w-3 h-3" />
-                          {collectible.gem_cost === 0 ? 'Free' : collectible.gem_cost}
-                        </button>
+                        <>
+                          {collectible.gem_cost === 0 ? (
+                            <span className="text-xs text-green-400 px-2 py-1 rounded-full bg-green-900/20 block">
+                              Available
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handlePurchaseCollectible(collectible.id)}
+                              disabled={disabled || !canAfford}
+                              className={`
+                                text-xs px-2 py-1 rounded-full w-full transition-colors flex items-center justify-center gap-1
+                                ${canAfford && !disabled
+                                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                }
+                              `}
+                            >
+                              <Gem className="w-3 h-3" />
+                              {collectible.gem_cost}
+                            </button>
+                          )}
+                        </>
                       )}
                       
                       {collectible.rarity === 'legendary' && !isOwned && (
