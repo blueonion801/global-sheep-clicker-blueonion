@@ -766,11 +766,39 @@ export const useGameState = () => {
     setGlobalStats(updatedStats);
     setUserStats(updatedUserStats);
     
+    // Auto-award sheep gems every 500 clicks for tier 5+ users
+    let updatedCurrency = userCurrency;
+    if (newTier >= 5 && newClickCount % 500 === 0) {
+      const gemsToAward = 1;
+      updatedCurrency = {
+        ...userCurrency,
+        sheep_gems: userCurrency.sheep_gems + gemsToAward,
+        updated_at: new Date().toISOString()
+      };
+      setUserCurrency(updatedCurrency);
+      
+      if (isOfflineMode(forceOffline)) {
+        localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+      } else {
+        try {
+          await supabase
+            .from('user_currency')
+            .update({
+              sheep_gems: updatedCurrency.sheep_gems,
+              updated_at: updatedCurrency.updated_at
+            })
+            .eq('user_id', user.id);
+        } catch (error) {
+          console.error('Failed to update sheep gems:', error);
+        }
+      }
+    }
+    
     // Award wool coins every 10 clicks for Shepherd tier and above
     if (newTier >= 1 && newClickCount % 100 === 0) {
       const coinsToAward = Math.max(1, Math.floor(newTier / 2)); // More coins for higher tiers
-      const updatedCurrency = {
-        ...userCurrency,
+      updatedCurrency = {
+        ...updatedCurrency,
         wool_coins: userCurrency.wool_coins + coinsToAward,
         updated_at: new Date().toISOString()
       };

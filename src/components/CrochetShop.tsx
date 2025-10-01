@@ -229,27 +229,8 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
             </span>
             <span className="text-gray-400">Sheep Gems</span>
           </div>
-          
-          {/* Daily Gems Claim */}
-          <div className="flex-1 flex justify-end">
-            <button
-              onClick={handleClaimDailyGems}
-              disabled={disabled || isClaimingGems || !canClaimDailyGems()}
-              className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-white
-                ${canClaimDailyGems() && !disabled
-                  ? 'shadow-lg'
-                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                }
-              `}
-              style={canClaimDailyGems() && !disabled ? {
-                backgroundColor: currentTheme.colors.primary,
-                boxShadow: `0 10px 15px -3px ${currentTheme.colors.primary}25`
-              } : {}}
-            >
-              <Gem className="w-4 h-4" />
-              {isClaimingGems ? 'Claiming...' : canClaimDailyGems() ? 'Daily Gem' : 'Claimed Today'}
-            </button>
+          <div className="text-sm text-gray-400">
+            Auto-earned every 500 clicks (Tier 5+)
           </div>
         </div>
       </div>
@@ -361,7 +342,8 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                     <li>• 70% chance: 10-30 Wool Coins</li>
                     <li>• 20% chance: 2-8 Sheep Gems</li>
                     <li>• 10% chance: Random collectible (7% normal, 2% epic, 1% legendary)</li>
-                    <li>• Earn 1 free gem daily + claim daily boxes</li>
+                    <li>• Earn 1 gem automatically every 500 clicks (Tier 5+)</li>
+                    <li>• Claim daily boxes for extra rewards</li>
                   </ul>
                 </div>
               )}
