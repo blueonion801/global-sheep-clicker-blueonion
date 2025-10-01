@@ -322,22 +322,38 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                     <ShoppingBag className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
                     <h4 className="text-lg font-bold text-white mb-2">Premium Embroidered Box</h4>
                     <p className="text-sm text-gray-300 mb-4">
-                      Purchase additional boxes for 40 gems each
+                      Purchase additional boxes with gems or coins
                     </p>
-                    <button
-                      onClick={() => handleOpenBox('purchased')}
-                      disabled={disabled || isOpeningBox || userCurrency.sheep_gems < 40}
-                      className={`
-                        w-full py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2
-                        ${userCurrency.sheep_gems >= 40 && !disabled
-                          ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
-                          : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        }
-                      `}
-                    >
-                      <Gem className="w-4 h-4" />
-                      {isOpeningBox ? 'Opening...' : '40 Gems'}
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleOpenBox('purchased')}
+                        disabled={disabled || isOpeningBox || userCurrency.sheep_gems < 40}
+                        className={`
+                          w-full py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2
+                          ${userCurrency.sheep_gems >= 40 && !disabled
+                            ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                          }
+                        `}
+                      >
+                        <Gem className="w-4 h-4" />
+                        {isOpeningBox ? 'Opening...' : '40 Gems'}
+                      </button>
+                      <button
+                        onClick={() => handleOpenBox('purchased')}
+                        disabled={disabled || isOpeningBox || userCurrency.wool_coins < 500}
+                        className={`
+                          w-full py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 text-sm
+                          ${userCurrency.wool_coins >= 500 && !disabled
+                            ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                          }
+                        `}
+                      >
+                        <Coins className="w-4 h-4" />
+                        {isOpeningBox ? 'Opening...' : '500 Coins'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
