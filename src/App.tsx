@@ -67,19 +67,15 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   claimDailyReward: () => void;
   purchaseTheme: (themeId: string) => void;
   selectTheme: (themeId: string) => void;
-  claimDailyGems: () => void;
-  openEmbroideredBox: (boxType: 'daily' | 'purchased') => Promise<any>;
-  purchaseCollectible: (collectibleId: string) => Promise<boolean>;
-  selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
-  claimDailyGems: () => void;
-  openEmbroideredBox: (boxType: 'daily' | 'purchased') => Promise<any>;
-  purchaseCollectible: (collectibleId: string) => Promise<boolean>;
-  selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
   sendMessage: (message: string) => void;
   updateNickname: (nickname: string) => void;
   updateTier: (tier: number) => void;
   isOffline: boolean;
   loading: boolean;
+  claimDailyGems: () => void;
+  openEmbroideredBox: (boxType: 'daily' | 'purchased') => Promise<any>;
+  purchaseCollectible: (collectibleId: string) => Promise<boolean>;
+  selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
 }) {
   const [soundEnabled, setSoundEnabled] = React.useState(audioManager.isAudioEnabled());
   const [hintsEnabled, setHintsEnabled] = React.useState(() => {
