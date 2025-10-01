@@ -118,7 +118,7 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
 
   const handleOpenBox = async (boxType: 'daily' | 'purchased') => {
     if (isOpeningBox) return;
-    if (boxType === 'purchased' && userCurrency.sheep_gems < 15) return;
+    if (boxType === 'purchased' && userCurrency.sheep_gems < 40) return;
     if (boxType === 'daily' && !canClaimDailyBox()) return;
     
     setIsOpeningBox(true);
@@ -322,21 +322,21 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                     <ShoppingBag className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
                     <h4 className="text-lg font-bold text-white mb-2">Premium Embroidered Box</h4>
                     <p className="text-sm text-gray-300 mb-4">
-                      Purchase additional boxes for 15 gems each
+                      Purchase additional boxes for 40 gems each
                     </p>
                     <button
                       onClick={() => handleOpenBox('purchased')}
-                      disabled={disabled || isOpeningBox || userCurrency.sheep_gems < 15}
+                      disabled={disabled || isOpeningBox || userCurrency.sheep_gems < 40}
                       className={`
                         w-full py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2
-                        ${userCurrency.sheep_gems >= 15 && !disabled
+                        ${userCurrency.sheep_gems >= 40 && !disabled
                           ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
                           : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                         }
                       `}
                     >
                       <Gem className="w-4 h-4" />
-                      {isOpeningBox ? 'Opening...' : '15 Gems'}
+                      {isOpeningBox ? 'Opening...' : '40 Gems'}
                     </button>
                   </div>
                 </div>
@@ -346,10 +346,11 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                 <div className="mt-6 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
                   <h5 className="text-blue-400 font-medium mb-2">📦 Box Rewards:</h5>
                   <ul className="text-sm text-gray-300 space-y-1">
-                    <li>• Daily boxes give 2 random rewards, purchased boxes give 1</li>
-                    <li>• Each reward: 70% coins (10-30), 20% gems (2-8), 10% collectible</li>
+                    <li>• Daily boxes: 2 rewards each with 55% coins (10-30), 35% gems (2-8), 10% collectible</li>
+                    <li>• Premium boxes: 1 reward with 20% coins (20-40), 25% gems (5-15), 55% collectible</li>
+                    <li>• Collectible rarities - Daily: 7% normal, 2% epic, 1% legendary</li>
+                    <li>• Collectible rarities - Premium: 35% normal, 15% epic, 5% legendary</li>
                     <li>• Earn 1 gem automatically every 500 clicks (Tier 5+)</li>
-                    <li>• Claim daily boxes for extra rewards</li>
                   </ul>
                 </div>
               )}

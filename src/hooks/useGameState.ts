@@ -352,7 +352,7 @@ export const useGameState = () => {
     if (!user || !userCurrency) return null;
 
     // Check if user can open the box
-    if (boxType === 'purchased' && userCurrency.sheep_gems < 15) {
+    if (boxType === 'purchased' && userCurrency.sheep_gems < 40) {
       return null;
     }
 
@@ -366,51 +366,125 @@ export const useGameState = () => {
       const rand = Math.random();
       let reward: any;
 
-      if (rand < 0.3) {
-        // 30% chance for coins (reduced from 70%)
-        const amount = Math.floor(Math.random() * 21) + 10; // 10-30 coins
-        reward = {
-          type: 'coins',
-          amount: amount
-        };
-      } else if (rand < 0.7) {
-        // 40% chance for gems
-        const amount = Math.floor(Math.random() * 7) + 2; // 2-8 gems
-        reward = {
-          type: 'gems',
-          amount: amount
-        };
-      } else {
-        // 10% chance for collectible (remaining 10%)
-        const collectible = await generateRandomCollectible();
-        if (collectible) {
+      if (boxType === 'daily') {
+        // Daily box chances: 55% coins, 35% gems, 10% collectible
+        if (rand < 0.55) {
+          // 55% chance for coins
+          const amount = Math.floor(Math.random() * 21) + 10; // 10-30 coins
           reward = {
-            type: 'collectible',
-            collectible: collectible
+            type: 'coins',
+            amount: amount
           };
-          
-          // Add to user collectibles if not already owned
-          try {
-            await supabase
-              .from('user_collectibles')
-              .insert([{
-                user_id: user.id,
-                collectible_id: collectible.id,
-                obtained_from: 'box'
-              }]);
-          } catch (error) {
-            // Ignore duplicate key errors (already owned)
-            if (!error.message?.includes('duplicate key')) {
-              console.error('Failed to add collectible to user:', error);
-            }
-          }
-        } else {
-          // Fallback to gems if no collectible available
-          const amount = Math.floor(Math.random() * 7) + 2;
+        } else if (rand < 0.9) {
+          // 35% chance for gems
+          const amount = Math.floor(Math.random() * 7) + 2; // 2-8 gems
           reward = {
             type: 'gems',
             amount: amount
           };
+        } else {
+          // 10% chance for collectible (7% normal, 2% epic, 1% legendary)
+          const collectibleRand = Math.random();
+          let targetRarity: string;
+          
+          if (collectibleRand < 0.7) {
+            targetRarity = 'normal'; // 7% of total (70% of 10%)
+          } else if (collectibleRand < 0.9) {
+            targetRarity = 'epic'; // 2% of total (20% of 10%)
+          } else {
+            targetRarity = 'legendary'; // 1% of total (10% of 10%)
+          }
+          
+          const collectible = await generateRandomCollectible(targetRarity);
+          if (collectible) {
+            reward = {
+              type: 'collectible',
+              collectible: collectible
+            };
+            
+            // Add to user collectibles if not already owned
+            try {
+              await supabase
+                .from('user_collectibles')
+                .insert([{
+                  user_id: user.id,
+                  collectible_id: collectible.id,
+                  obtained_from: 'box'
+                }]);
+            } catch (error) {
+              // Ignore duplicate key errors (already owned)
+              if (!error.message?.includes('duplicate key')) {
+                console.error('Failed to add collectible to user:', error);
+              }
+            }
+          } else {
+            // Fallback to gems if no collectible available
+            const amount = Math.floor(Math.random() * 7) + 2;
+            reward = {
+              type: 'gems',
+              amount: amount
+            };
+          }
+        }
+      } else {
+        // Premium box chances: 20% coins, 25% gems, 55% collectible
+        if (rand < 0.2) {
+          // 20% chance for coins
+          const amount = Math.floor(Math.random() * 21) + 20; // 20-40 coins
+          reward = {
+            type: 'coins',
+            amount: amount
+          };
+        } else if (rand < 0.45) {
+          // 25% chance for gems
+          const amount = Math.floor(Math.random() * 11) + 5; // 5-15 gems
+          reward = {
+            type: 'gems',
+            amount: amount
+          };
+        } else {
+          // 55% chance for collectible (35% normal, 15% epic, 5% legendary)
+          const collectibleRand = Math.random();
+          let targetRarity: string;
+          
+          if (collectibleRand < 0.636) {
+            targetRarity = 'normal'; // 35% of total (63.6% of 55%)
+          } else if (collectibleRand < 0.909) {
+            targetRarity = 'epic'; // 15% of total (27.3% of 55%)
+          } else {
+            targetRarity = 'legendary'; // 5% of total (9.1% of 55%)
+          }
+          
+          const collectible = await generateRandomCollectible(targetRarity);
+          if (collectible) {
+            reward = {
+              type: 'collectible',
+              collectible: collectible
+            };
+            
+            // Add to user collectibles if not already owned
+            try {
+              await supabase
+                .from('user_collectibles')
+                .insert([{
+                  user_id: user.id,
+                  collectible_id: collectible.id,
+                  obtained_from: 'box'
+                }]);
+            } catch (error) {
+              // Ignore duplicate key errors (already owned)
+              if (!error.message?.includes('duplicate key')) {
+                console.error('Failed to add collectible to user:', error);
+              }
+            }
+          } else {
+            // Fallback to gems if no collectible available
+            const amount = Math.floor(Math.random() * 11) + 5;
+            reward = {
+              type: 'gems',
+              amount: amount
+            };
+          }
         }
       }
       
@@ -421,7 +495,7 @@ export const useGameState = () => {
     let updatedCurrency = { ...userCurrency };
     
     if (boxType === 'purchased') {
-      updatedCurrency.sheep_gems -= 15;
+      updatedCurrency.sheep_gems -= 40;
     }
 
     // Apply all rewards
@@ -457,7 +531,7 @@ export const useGameState = () => {
     return { rewards, totalRewards: numRewards };
   }, [user, userCurrency, forceOffline]);
 
-  const generateRandomCollectible = async (): Promise<any | null> => {
+  const generateRandomCollectible = async (targetRarity?: string): Promise<any | null> => {
     if (isOfflineMode(forceOffline)) {
       // Return a mock collectible for offline mode
       const mockCollectibles = [
@@ -466,6 +540,11 @@ export const useGameState = () => {
         { id: 'particle_sparkle', name: 'Sparkle', emoji: '✨', type: 'particle', rarity: 'epic' },
         { id: 'particle_heart', name: 'Heart', emoji: '💖', type: 'particle', rarity: 'epic' }
       ];
+      
+      if (targetRarity) {
+        const filtered = mockCollectibles.filter(c => c.rarity === targetRarity);
+        return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : mockCollectibles[Math.floor(Math.random() * mockCollectibles.length)];
+      }
       return mockCollectibles[Math.floor(Math.random() * mockCollectibles.length)];
     }
 
@@ -479,20 +558,21 @@ export const useGameState = () => {
         return null;
       }
 
-      // Filter by rarity chances: 60% normal, 30% epic, 10% legendary
-      const rarityRand = Math.random();
-      let targetRarity: string;
-      
-      if (rarityRand < 0.6) {
-        targetRarity = 'normal';
-      } else if (rarityRand < 0.9) {
-        targetRarity = 'epic';
-      } else {
-        targetRarity = 'legendary';
+      // Use provided target rarity or default distribution
+      let finalRarity = targetRarity;
+      if (!finalRarity) {
+        const rarityRand = Math.random();
+        if (rarityRand < 0.6) {
+          finalRarity = 'normal';
+        } else if (rarityRand < 0.9) {
+          finalRarity = 'epic';
+        } else {
+          finalRarity = 'legendary';
+        }
       }
 
       // Get collectibles of target rarity
-      const rarityCollectibles = allCollectibles.filter(c => c.rarity === targetRarity);
+      const rarityCollectibles = allCollectibles.filter(c => c.rarity === finalRarity);
       
       // If no collectibles of target rarity, fall back to normal
       const availableCollectibles = rarityCollectibles.length > 0 
