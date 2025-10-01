@@ -4,6 +4,7 @@ import { UserCurrency, Collectible, UserCollectible, BoxReward } from '../types/
 import { supabase } from '../lib/supabase';
 import { audioManager } from '../utils/audioManager';
 import { useTheme } from './ThemeProvider';
+import { BoxOpeningModal } from './BoxOpeningModal';
 
 interface CrochetShopProps {
   userCurrency: UserCurrency;
@@ -32,7 +33,9 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
   const [collectibles, setCollectibles] = useState<Collectible[]>([]);
   const [userCollectibles, setUserCollectibles] = useState<UserCollectible[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lastReward, setLastReward] = useState<BoxReward | null>(null);
+  const [showBoxModal, setShowBoxModal] = useState(false);
+  const [currentBoxRewards, setCurrentBoxRewards] = useState<any[] | null>(null);
+  const [currentBoxType, setCurrentBoxType] = useState<'daily' | 'purchased'>('daily');
   const [isClaimingGems, setIsClaimingGems] = useState(false);
   const [isOpeningBox, setIsOpeningBox] = useState(false);
   const { currentTheme } = useTheme();
@@ -118,14 +121,14 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
     if (boxType === 'purchased' && userCurrency.sheep_gems < 15) return;
     if (boxType === 'daily' && !canClaimDailyBox()) return;
     
-    audioManager.playGuiSound();
     setIsOpeningBox(true);
+    setCurrentBoxType(boxType);
     
     try {
       const reward = await onOpenBox(boxType);
       if (reward) {
-        setLastReward(reward);
-        setTimeout(() => setLastReward(null), 4000);
+        setCurrentBoxRewards(reward.rewards || []);
+        setShowBoxModal(true);
         
         // Refresh user collectibles if a collectible was obtained
         if (reward.rewards && reward.rewards.some((r: any) => r.type === 'collectible')) {
@@ -135,6 +138,12 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
     } finally {
       setIsOpeningBox(false);
     }
+  };
+
+  const handleCloseBoxModal = () => {
+    setShowBoxModal(false);
+    setCurrentBoxRewards(null);
+    setIsOpeningBox(false);
   };
 
   const handlePurchaseCollectible = async (collectibleId: string) => {
@@ -245,23 +254,6 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Reward notification */}
-      {lastReward && (
-        <div className="bg-green-600/20 border-b border-green-500/30 p-4 text-center">
-          <div className="text-green-400 font-medium">
-            <p className="mb-2">🎉 Box opened!</p>
-            {lastReward.rewards && lastReward.rewards.map((reward: any, index: number) => (
-              <p key={index} className="text-sm">
-                {reward.type === 'coins' && `+${reward.amount} Wool Coins`}
-                {reward.type === 'gems' && `+${reward.amount} Sheep Gems`}
-                {reward.type === 'collectible' && reward.collectible && 
-                  `${reward.collectible.emoji} ${reward.collectible.name} (${reward.collectible.rarity})`}
-              </p>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Content */}
       {isExpanded && (
@@ -529,6 +521,14 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
           )}
         </div>
       )}
+
+      {/* Box Opening Modal */}
+      <BoxOpeningModal
+        isOpen={showBoxModal}
+        onClose={handleCloseBoxModal}
+        rewards={currentBoxRewards}
+        boxType={currentBoxType}
+      />
     </div>
   );
 };
