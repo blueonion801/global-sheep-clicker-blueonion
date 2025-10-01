@@ -424,10 +424,75 @@ export const useGameState = () => {
   const purchaseCollectible = useCallback(async (collectibleId: string): Promise<boolean> => {
     if (!user || !userCurrency) return false;
 
-    // This would normally fetch collectible data from database
-    // For now, return false to prevent errors
-    audioManager.playGuiSound();
-    return false;
+    if (isOfflineMode(forceOffline)) {
+      // In offline mode, just return true for free items
+      audioManager.playGuiSound();
+      return true;
+    }
+
+    try {
+      // Fetch collectible data
+      const { data: collectible, error: fetchError } = await supabase
+        .from('collectibles')
+        .select('*')
+        .eq('id', collectibleId)
+        .single();
+
+      if (fetchError || !collectible) {
+        console.error('Failed to fetch collectible:', fetchError);
+        return false;
+      }
+
+      // Check if user can afford it
+      if (userCurrency.sheep_gems < collectible.gem_cost) {
+        return false;
+      }
+
+      // Check if user already owns it
+      const { data: existingOwnership } = await supabase
+        .from('user_collectibles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('collectible_id', collectibleId)
+        .maybeSingle();
+
+      if (existingOwnership) {
+        return false; // Already owned
+      }
+
+      // Deduct gems if not free
+      if (collectible.gem_cost > 0) {
+        const updatedCurrency: UserCurrency = {
+          ...userCurrency,
+          sheep_gems: userCurrency.sheep_gems - collectible.gem_cost,
+          updated_at: new Date().toISOString()
+        };
+        setUserCurrency(updatedCurrency);
+
+        await supabase
+          .from('user_currency')
+          .update({
+            sheep_gems: updatedCurrency.sheep_gems,
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      }
+
+      // Add to user collectibles
+      await supabase
+        .from('user_collectibles')
+        .insert([{
+          user_id: user.id,
+          collectible_id: collectibleId,
+          obtained_from: collectible.gem_cost === 0 ? 'free' : 'purchase'
+        }]);
+
+      audioManager.playTierUpSound();
+      return true;
+    } catch (error) {
+      console.error('Failed to purchase collectible:', error);
+      return false;
+    }
   }, [user, userCurrency]);
 
   const selectCollectible = useCallback(async (collectibleId: string, type: 'sheep_emoji' | 'particle'): Promise<void> => {

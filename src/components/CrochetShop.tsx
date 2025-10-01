@@ -39,14 +39,24 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
 
   const fetchCollectibles = async () => {
     try {
+      // Define rarity order for sorting
+      const rarityOrder = { 'free': 0, 'normal': 1, 'epic': 2, 'legendary': 3 };
+      
       const { data, error } = await supabase
         .from('collectibles')
         .select('*')
-        .order('rarity', { ascending: true })
         .order('gem_cost', { ascending: true });
 
       if (error) throw error;
-      setCollectibles(data || []);
+      
+      // Sort by rarity order, then by gem cost
+      const sortedData = (data || []).sort((a, b) => {
+        const rarityDiff = rarityOrder[a.rarity] - rarityOrder[b.rarity];
+        if (rarityDiff !== 0) return rarityDiff;
+        return a.gem_cost - b.gem_cost;
+      });
+      
+      setCollectibles(sortedData);
     } catch (error) {
       console.error('Failed to fetch collectibles:', error);
     }
@@ -406,17 +416,17 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                       {!isOwned && collectible.rarity !== 'legendary' && (
                         <button
                           onClick={() => handlePurchaseCollectible(collectible.id)}
-                          disabled={disabled || !canAfford}
+                          disabled={disabled || (!canAfford && collectible.gem_cost > 0)}
                           className={`
                             text-xs px-2 py-1 rounded-full w-full transition-colors flex items-center justify-center gap-1
-                            ${canAfford && !disabled
+                            ${(canAfford || collectible.gem_cost === 0) && !disabled
                               ? 'bg-green-600 hover:bg-green-700 text-white'
                               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                             }
                           `}
                         >
                           <Gem className="w-3 h-3" />
-                          {collectible.gem_cost}
+                          {collectible.gem_cost === 0 ? 'Free' : collectible.gem_cost}
                         </button>
                       )}
                       
@@ -488,17 +498,17 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                       {!isOwned && collectible.rarity !== 'legendary' && (
                         <button
                           onClick={() => handlePurchaseCollectible(collectible.id)}
-                          disabled={disabled || !canAfford}
+                          disabled={disabled || (!canAfford && collectible.gem_cost > 0)}
                           className={`
                             text-xs px-2 py-1 rounded-full w-full transition-colors flex items-center justify-center gap-1
-                            ${canAfford && !disabled
+                            ${(canAfford || collectible.gem_cost === 0) && !disabled
                               ? 'bg-green-600 hover:bg-green-700 text-white'
                               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                             }
                           `}
                         >
                           <Gem className="w-3 h-3" />
-                          {collectible.gem_cost}
+                          {collectible.gem_cost === 0 ? 'Free' : collectible.gem_cost}
                         </button>
                       )}
                       
