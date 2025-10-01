@@ -358,30 +358,37 @@ export const useGameState = () => {
 
     audioManager.playTierUpSound();
 
-    // Generate random reward
-    const rand = Math.random();
-    let reward: any;
+    // Generate rewards (2 for daily box, 1 for purchased box)
+    const numRewards = boxType === 'daily' ? 2 : 1;
+    const rewards = [];
+    
+    for (let i = 0; i < numRewards; i++) {
+      const rand = Math.random();
+      let reward: any;
 
-    if (rand < 0.7) {
-      // 70% chance for coins
-      const amount = Math.floor(Math.random() * 21) + 10; // 10-30 coins
-      reward = {
-        type: 'coins',
-        amount: amount
-      };
-    } else if (rand < 0.9) {
-      // 20% chance for gems
-      const amount = Math.floor(Math.random() * 7) + 2; // 2-8 gems
-      reward = {
-        type: 'gems',
-        amount: amount
-      };
-    } else {
-      // 10% chance for collectible
-      reward = {
-        type: 'collectible',
-        collectible: { id: 'random', name: 'Random Collectible', emoji: '🎁' }
-      };
+      if (rand < 0.7) {
+        // 70% chance for coins
+        const amount = Math.floor(Math.random() * 21) + 10; // 10-30 coins
+        reward = {
+          type: 'coins',
+          amount: amount
+        };
+      } else if (rand < 0.9) {
+        // 20% chance for gems
+        const amount = Math.floor(Math.random() * 7) + 2; // 2-8 gems
+        reward = {
+          type: 'gems',
+          amount: amount
+        };
+      } else {
+        // 10% chance for collectible
+        reward = {
+          type: 'collectible',
+          collectible: { id: 'random', name: 'Random Collectible', emoji: '🎁' }
+        };
+      }
+      
+      rewards.push(reward);
     }
 
     // Update currency based on reward and box cost
@@ -391,10 +398,13 @@ export const useGameState = () => {
       updatedCurrency.sheep_gems -= 15;
     }
 
-    if (reward.type === 'coins') {
-      updatedCurrency.wool_coins += reward.amount;
-    } else if (reward.type === 'gems') {
-      updatedCurrency.sheep_gems += reward.amount;
+    // Apply all rewards
+    for (const reward of rewards) {
+      if (reward.type === 'coins') {
+        updatedCurrency.wool_coins += reward.amount;
+      } else if (reward.type === 'gems') {
+        updatedCurrency.sheep_gems += reward.amount;
+      }
     }
 
     updatedCurrency.updated_at = new Date().toISOString();
@@ -418,7 +428,7 @@ export const useGameState = () => {
       }
     }
 
-    return reward;
+    return { rewards, totalRewards: numRewards };
   }, [user, userCurrency, forceOffline]);
 
   const purchaseCollectible = useCallback(async (collectibleId: string): Promise<boolean> => {

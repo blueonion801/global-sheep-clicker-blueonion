@@ -128,7 +128,7 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
         setTimeout(() => setLastReward(null), 4000);
         
         // Refresh user collectibles if a collectible was obtained
-        if (reward.type === 'collectible') {
+        if (reward.rewards && reward.rewards.some((r: any) => r.type === 'collectible')) {
           await fetchUserCollectibles();
         }
       }
@@ -249,13 +249,17 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
       {/* Reward notification */}
       {lastReward && (
         <div className="bg-green-600/20 border-b border-green-500/30 p-4 text-center">
-          <p className="text-green-400 font-medium">
-            🎉 Box opened! 
-            {lastReward.type === 'coins' && ` +${lastReward.amount} Wool Coins`}
-            {lastReward.type === 'gems' && ` +${lastReward.amount} Sheep Gems`}
-            {lastReward.type === 'collectible' && lastReward.collectible && 
-              ` ${lastReward.collectible.emoji} ${lastReward.collectible.name} (${lastReward.collectible.rarity})`}
-          </p>
+          <div className="text-green-400 font-medium">
+            <p className="mb-2">🎉 Box opened!</p>
+            {lastReward.rewards && lastReward.rewards.map((reward: any, index: number) => (
+              <p key={index} className="text-sm">
+                {reward.type === 'coins' && `+${reward.amount} Wool Coins`}
+                {reward.type === 'gems' && `+${reward.amount} Sheep Gems`}
+                {reward.type === 'collectible' && reward.collectible && 
+                  `${reward.collectible.emoji} ${reward.collectible.name} (${reward.collectible.rarity})`}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
@@ -350,9 +354,8 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                 <div className="mt-6 p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg">
                   <h5 className="text-blue-400 font-medium mb-2">📦 Box Rewards:</h5>
                   <ul className="text-sm text-gray-300 space-y-1">
-                    <li>• 70% chance: 10-30 Wool Coins</li>
-                    <li>• 20% chance: 2-8 Sheep Gems</li>
-                    <li>• 10% chance: Random collectible (7% normal, 2% epic, 1% legendary)</li>
+                    <li>• Daily boxes give 2 random rewards, purchased boxes give 1</li>
+                    <li>• Each reward: 70% coins (10-30), 20% gems (2-8), 10% collectible</li>
                     <li>• Earn 1 gem automatically every 500 clicks (Tier 5+)</li>
                     <li>• Claim daily boxes for extra rewards</li>
                   </ul>
