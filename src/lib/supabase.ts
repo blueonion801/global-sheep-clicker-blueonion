@@ -52,28 +52,40 @@ export type Database = {
         Row: {
           user_id: string;
           wool_coins: number;
+          sheep_gems: number;
           last_daily_claim: string | null;
+          last_gem_claim: string | null;
           consecutive_days: number;
           selected_theme: string;
           unlocked_themes: string[];
+          selected_sheep_emoji: string;
+          selected_particle: string;
           updated_at: string;
         };
         Insert: {
           user_id: string;
           wool_coins?: number;
+          sheep_gems?: number;
           last_daily_claim?: string | null;
+          last_gem_claim?: string | null;
           consecutive_days?: number;
           selected_theme?: string;
           unlocked_themes?: string[];
+          selected_sheep_emoji?: string;
+          selected_particle?: string;
           updated_at?: string;
         };
         Update: {
           user_id?: string;
           wool_coins?: number;
+          sheep_gems?: number;
           last_daily_claim?: string | null;
+          last_gem_claim?: string | null;
           consecutive_days?: number;
           selected_theme?: string;
           unlocked_themes?: string[];
+          selected_sheep_emoji?: string;
+          selected_particle?: string;
           updated_at?: string;
         };
       };
@@ -138,6 +150,87 @@ export type Database = {
           nickname?: string;
           message?: string;
           tier?: number;
+          created_at?: string;
+        };
+      };
+      collectibles: {
+        Row: {
+          id: string;
+          name: string;
+          emoji: string;
+          type: 'sheep_emoji' | 'particle';
+          rarity: 'free' | 'normal' | 'epic' | 'legendary';
+          gem_cost: number;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          emoji: string;
+          type: 'sheep_emoji' | 'particle';
+          rarity: 'free' | 'normal' | 'epic' | 'legendary';
+          gem_cost?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          emoji?: string;
+          type?: 'sheep_emoji' | 'particle';
+          rarity?: 'free' | 'normal' | 'epic' | 'legendary';
+          gem_cost?: number;
+          created_at?: string;
+        };
+      };
+      user_collectibles: {
+        Row: {
+          user_id: string;
+          collectible_id: string;
+          obtained_at: string;
+          obtained_from: 'purchase' | 'box' | 'free';
+        };
+        Insert: {
+          user_id: string;
+          collectible_id: string;
+          obtained_at?: string;
+          obtained_from?: 'purchase' | 'box' | 'free';
+        };
+        Update: {
+          user_id?: string;
+          collectible_id?: string;
+          obtained_at?: string;
+          obtained_from?: 'purchase' | 'box' | 'free';
+        };
+      };
+      embroidered_boxes: {
+        Row: {
+          id: string;
+          user_id: string;
+          box_type: 'daily' | 'purchased';
+          opened_at: string;
+          reward_type: 'coins' | 'gems' | 'collectible';
+          reward_amount: number;
+          reward_collectible_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          box_type: 'daily' | 'purchased';
+          opened_at?: string;
+          reward_type: 'coins' | 'gems' | 'collectible';
+          reward_amount?: number;
+          reward_collectible_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          box_type?: 'daily' | 'purchased';
+          opened_at?: string;
+          reward_type?: 'coins' | 'gems' | 'collectible';
+          reward_amount?: number;
+          reward_collectible_id?: string | null;
           created_at?: string;
         };
       };

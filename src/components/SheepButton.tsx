@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { UserCurrency } from '../types/game';
 import { useTheme } from './ThemeProvider';
 
 interface SheepButtonProps {
   onClick: () => void;
   disabled?: boolean;
+  userCurrency?: UserCurrency | null;
 }
 
-export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled }) => {
+export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled, userCurrency }) => {
   const [isAnimating, setIsAnimating] = useState(false);
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; emoji: string }>>([]);
   const { currentTheme } = useTheme();
+
+  const sheepEmoji = userCurrency?.selected_sheep_emoji || '🐑';
+  const particleEmoji = userCurrency?.selected_particle || '✧';
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled) return;
@@ -25,7 +29,8 @@ export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled }) =
     const newParticles = Array.from({ length: 12 }, (_, i) => ({
       id: Date.now() + i,
       x: centerX + (Math.random() - 0.5) * 120,
-      y: centerY + (Math.random() - 0.5) * 120
+      y: centerY + (Math.random() - 0.5) * 120,
+      emoji: particleEmoji
     }));
 
     setParticles(newParticles);
@@ -52,7 +57,7 @@ export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled }) =
           boxShadow: `0 25px 50px -12px ${currentTheme.colors.primary}40, 0 0 0 1px ${currentTheme.colors.primary}20`
         }}
       >
-        🐑
+        {sheepEmoji}
         
         {/* Glow effect */}
         <div 
@@ -70,9 +75,9 @@ export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled }) =
 
       {/* Particles */}
       {particles.map((particle) => (
-        <Sparkles
+        <div
           key={particle.id}
-          className="absolute w-6 h-6 animate-ping pointer-events-none z-10"
+          className="absolute text-2xl animate-ping pointer-events-none z-10 select-none"
           style={{
             color: currentTheme.colors.accent,
             left: `calc(50% + ${particle.x}px)`,
@@ -81,7 +86,9 @@ export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled }) =
             animationDelay: `${Math.random() * 0.5}s`,
             animationDuration: '1s'
           }}
-        />
+        >
+          {particle.emoji}
+        </div>
       ))}
     </div>
   );

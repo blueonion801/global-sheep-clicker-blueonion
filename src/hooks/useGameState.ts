@@ -40,10 +40,14 @@ export const useGameState = () => {
       return {
         user_id: userId,
         wool_coins: parseInt(localStorage.getItem('offline_wool_coins') || '0'),
+        sheep_gems: parseInt(localStorage.getItem('offline_sheep_gems') || '0'),
         last_daily_claim: localStorage.getItem('offline_last_daily_claim'),
+        last_gem_claim: localStorage.getItem('offline_last_gem_claim'),
         consecutive_days: parseInt(localStorage.getItem('offline_consecutive_days') || '0'),
         selected_theme: localStorage.getItem('offline_selected_theme') || 'cosmic',
         unlocked_themes: JSON.parse(localStorage.getItem('offline_unlocked_themes') || '["cosmic"]'),
+        selected_sheep_emoji: localStorage.getItem('offline_selected_sheep_emoji') || '🐑',
+        selected_particle: localStorage.getItem('offline_selected_particle') || '✧',
         updated_at: new Date().toISOString()
       };
     }
@@ -90,10 +94,14 @@ export const useGameState = () => {
       return {
         user_id: userId,
         wool_coins: parseInt(localStorage.getItem('offline_wool_coins') || '0'),
+        sheep_gems: parseInt(localStorage.getItem('offline_sheep_gems') || '0'),
         last_daily_claim: localStorage.getItem('offline_last_daily_claim'),
+        last_gem_claim: localStorage.getItem('offline_last_gem_claim'),
         consecutive_days: parseInt(localStorage.getItem('offline_consecutive_days') || '0'),
         selected_theme: localStorage.getItem('offline_selected_theme') || 'cosmic',
         unlocked_themes: JSON.parse(localStorage.getItem('offline_unlocked_themes') || '["cosmic"]'),
+        selected_sheep_emoji: localStorage.getItem('offline_selected_sheep_emoji') || '🐑',
+        selected_particle: localStorage.getItem('offline_selected_particle') || '✧',
         updated_at: new Date().toISOString()
       };
     }
@@ -298,6 +306,428 @@ export const useGameState = () => {
     }
 
     return true;
+  }, [user, userCurrency, forceOffline]);
+
+  const claimDailyGems = useCallback(async (): Promise<void> => {
+    if (!user || !userCurrency) return;
+
+    audioManager.playGuiSound();
+
+    const now = new Date();
+    const today = now.toDateString();
+    const lastClaim = userCurrency.last_gem_claim ? new Date(userCurrency.last_gem_claim).toDateString() : null;
+
+    // Check if already claimed today
+    if (lastClaim === today) return;
+
+    const updatedCurrency: UserCurrency = {
+      ...userCurrency,
+      sheep_gems: userCurrency.sheep_gems + 1,
+      last_gem_claim: now.toISOString(),
+      updated_at: now.toISOString()
+    };
+
+    setUserCurrency(updatedCurrency);
+
+    if (isOfflineMode(forceOffline)) {
+      localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+      localStorage.setItem('offline_last_gem_claim', updatedCurrency.last_gem_claim);
+    } else {
+      try {
+        await supabase
+          .from('user_currency')
+          .update({
+            sheep_gems: updatedCurrency.sheep_gems,
+            last_gem_claim: updatedCurrency.last_gem_claim,
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Failed to claim daily gems:', error);
+      }
+    }
+  }, [user, userCurrency, forceOffline]);
+
+  const openEmbroideredBox = useCallback(async (boxType: 'daily' | 'purchased'): Promise<any> => {
+    if (!user || !userCurrency) return null;
+
+    // Check if user can open the box
+    if (boxType === 'purchased' && userCurrency.sheep_gems < 40) {
+      return null;
+    }
+
+    audioManager.playTierUpSound();
+
+    // Generate rewards (2 for daily box, 1 for purchased box)
+    const numRewards = boxType === 'daily' ? 2 : 1;
+    const rewards = [];
+    
+    for (let i = 0; i < numRewards; i++) {
+      const rand = Math.random();
+      let reward: any;
+
+      if (boxType === 'daily') {
+        // Daily box chances: 55% coins, 35% gems, 10% collectible
+        if (rand < 0.55) {
+          // 55% chance for coins
+          const amount = Math.floor(Math.random() * 21) + 10; // 10-30 coins
+          reward = {
+            type: 'coins',
+            amount: amount
+          };
+        } else if (rand < 0.9) {
+          // 35% chance for gems
+          const amount = Math.floor(Math.random() * 7) + 2; // 2-8 gems
+          reward = {
+            type: 'gems',
+            amount: amount
+          };
+        } else {
+          // 10% chance for collectible (7% normal, 2% epic, 1% legendary)
+          const collectibleRand = Math.random();
+          let targetRarity: string;
+          
+          if (collectibleRand < 0.7) {
+            targetRarity = 'normal'; // 7% of total (70% of 10%)
+          } else if (collectibleRand < 0.9) {
+            targetRarity = 'epic'; // 2% of total (20% of 10%)
+          } else {
+            targetRarity = 'legendary'; // 1% of total (10% of 10%)
+          }
+          
+          const collectible = await generateRandomCollectible(targetRarity);
+          if (collectible) {
+            reward = {
+              type: 'collectible',
+              collectible: collectible
+            };
+            
+            // Add to user collectibles if not already owned
+            try {
+              await supabase
+                .from('user_collectibles')
+                .insert([{
+                  user_id: user.id,
+                  collectible_id: collectible.id,
+                  obtained_from: 'box'
+                }]);
+            } catch (error) {
+              // Ignore duplicate key errors (already owned)
+              if (!error.message?.includes('duplicate key')) {
+                console.error('Failed to add collectible to user:', error);
+              }
+            }
+          } else {
+            // Fallback to gems if no collectible available
+            const amount = Math.floor(Math.random() * 7) + 2;
+            reward = {
+              type: 'gems',
+              amount: amount
+            };
+          }
+        }
+      } else {
+        // Premium box chances: 20% coins, 25% gems, 55% collectible
+        if (rand < 0.2) {
+          // 20% chance for coins
+          const amount = Math.floor(Math.random() * 21) + 20; // 20-40 coins
+          reward = {
+            type: 'coins',
+            amount: amount
+          };
+        } else if (rand < 0.45) {
+          // 25% chance for gems
+          const amount = Math.floor(Math.random() * 11) + 5; // 5-15 gems
+          reward = {
+            type: 'gems',
+            amount: amount
+          };
+        } else {
+          // 55% chance for collectible (35% normal, 15% epic, 5% legendary)
+          const collectibleRand = Math.random();
+          let targetRarity: string;
+          
+          if (collectibleRand < 0.636) {
+            targetRarity = 'normal'; // 35% of total (63.6% of 55%)
+          } else if (collectibleRand < 0.909) {
+            targetRarity = 'epic'; // 15% of total (27.3% of 55%)
+          } else {
+            targetRarity = 'legendary'; // 5% of total (9.1% of 55%)
+          }
+          
+          const collectible = await generateRandomCollectible(targetRarity);
+          if (collectible) {
+            reward = {
+              type: 'collectible',
+              collectible: collectible
+            };
+            
+            // Add to user collectibles if not already owned
+            try {
+              await supabase
+                .from('user_collectibles')
+                .insert([{
+                  user_id: user.id,
+                  collectible_id: collectible.id,
+                  obtained_from: 'box'
+                }]);
+            } catch (error) {
+              // Ignore duplicate key errors (already owned)
+              if (!error.message?.includes('duplicate key')) {
+                console.error('Failed to add collectible to user:', error);
+              }
+            }
+          } else {
+            // Fallback to gems if no collectible available
+            const amount = Math.floor(Math.random() * 11) + 5;
+            reward = {
+              type: 'gems',
+              amount: amount
+            };
+          }
+        }
+      }
+      
+      rewards.push(reward);
+    }
+
+    // Update currency based on reward and box cost
+    let updatedCurrency = { ...userCurrency };
+    
+    if (boxType === 'purchased') {
+      updatedCurrency.sheep_gems -= 40;
+    }
+
+    // Apply all rewards
+    for (const reward of rewards) {
+      if (reward.type === 'coins') {
+        updatedCurrency.wool_coins += reward.amount;
+      } else if (reward.type === 'gems') {
+        updatedCurrency.sheep_gems += reward.amount;
+      }
+    }
+
+    updatedCurrency.updated_at = new Date().toISOString();
+    setUserCurrency(updatedCurrency);
+
+    if (isOfflineMode(forceOffline)) {
+      localStorage.setItem('offline_wool_coins', updatedCurrency.wool_coins.toString());
+      localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+    } else {
+      try {
+        await supabase
+          .from('user_currency')
+          .update({
+            wool_coins: updatedCurrency.wool_coins,
+            sheep_gems: updatedCurrency.sheep_gems,
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Failed to open embroidered box:', error);
+      }
+    }
+
+    return { rewards, totalRewards: numRewards };
+  }, [user, userCurrency, forceOffline]);
+
+  const generateRandomCollectible = async (targetRarity?: string): Promise<any | null> => {
+    if (isOfflineMode(forceOffline)) {
+      // Return a mock collectible for offline mode
+      const mockCollectibles = [
+        { id: 'sheep_chick', name: 'Chick', emoji: '🐤', type: 'sheep_emoji', rarity: 'normal' },
+        { id: 'sheep_pig', name: 'Pig', emoji: '🐷', type: 'sheep_emoji', rarity: 'normal' },
+        { id: 'particle_sparkle', name: 'Sparkle', emoji: '✨', type: 'particle', rarity: 'epic' },
+        { id: 'particle_heart', name: 'Heart', emoji: '💖', type: 'particle', rarity: 'epic' }
+      ];
+      
+      if (targetRarity) {
+        const filtered = mockCollectibles.filter(c => c.rarity === targetRarity);
+        return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : mockCollectibles[Math.floor(Math.random() * mockCollectibles.length)];
+      }
+      return mockCollectibles[Math.floor(Math.random() * mockCollectibles.length)];
+    }
+
+    try {
+      // Get all collectibles that can be obtained from boxes
+      const { data: allCollectibles, error } = await supabase
+        .from('collectibles')
+        .select('*');
+
+      if (error || !allCollectibles || allCollectibles.length === 0) {
+        return null;
+      }
+
+      // Use provided target rarity or default distribution
+      let finalRarity = targetRarity;
+      if (!finalRarity) {
+        const rarityRand = Math.random();
+        if (rarityRand < 0.6) {
+          finalRarity = 'normal';
+        } else if (rarityRand < 0.9) {
+          finalRarity = 'epic';
+        } else {
+          finalRarity = 'legendary';
+        }
+      }
+
+      // Get collectibles of target rarity
+      const rarityCollectibles = allCollectibles.filter(c => c.rarity === finalRarity);
+      
+      // If no collectibles of target rarity, fall back to normal
+      const availableCollectibles = rarityCollectibles.length > 0 
+        ? rarityCollectibles 
+        : allCollectibles.filter(c => c.rarity === 'normal');
+
+      if (availableCollectibles.length === 0) {
+        return null;
+      }
+
+      // Return random collectible from available ones
+      return availableCollectibles[Math.floor(Math.random() * availableCollectibles.length)];
+    } catch (error) {
+      console.error('Failed to generate random collectible:', error);
+      return null;
+    }
+  };
+
+  const purchaseCollectible = useCallback(async (collectibleId: string): Promise<boolean> => {
+    if (!user || !userCurrency) return false;
+
+    if (isOfflineMode(forceOffline)) {
+      // In offline mode, just return true for free items
+      audioManager.playGuiSound();
+      return true;
+    }
+
+    try {
+      // Fetch collectible data
+      const { data: collectible, error: fetchError } = await supabase
+        .from('collectibles')
+        .select('*')
+        .eq('id', collectibleId)
+        .single();
+
+      if (fetchError || !collectible) {
+        console.error('Failed to fetch collectible:', fetchError);
+        return false;
+      }
+
+      // Check if user can afford it
+      if (userCurrency.sheep_gems < collectible.gem_cost) {
+        return false;
+      }
+
+      // Check if user already owns it
+      const { data: existingOwnership } = await supabase
+        .from('user_collectibles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('collectible_id', collectibleId)
+        .maybeSingle();
+
+      if (existingOwnership) {
+        return false; // Already owned
+      }
+
+      // Deduct gems if not free
+      if (collectible.gem_cost > 0) {
+        const updatedCurrency: UserCurrency = {
+          ...userCurrency,
+          sheep_gems: userCurrency.sheep_gems - collectible.gem_cost,
+          updated_at: new Date().toISOString()
+        };
+        setUserCurrency(updatedCurrency);
+
+        await supabase
+          .from('user_currency')
+          .update({
+            sheep_gems: updatedCurrency.sheep_gems,
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      }
+
+      // Add to user collectibles
+      await supabase
+        .from('user_collectibles')
+        .insert([{
+          user_id: user.id,
+          collectible_id: collectibleId,
+          obtained_from: collectible.gem_cost === 0 ? 'free' : 'purchase'
+        }]);
+
+      audioManager.playTierUpSound();
+      return true;
+    } catch (error) {
+      console.error('Failed to purchase collectible:', error);
+      return false;
+    }
+  }, [user, userCurrency]);
+
+  const selectCollectible = useCallback(async (collectibleId: string, type: 'sheep_emoji' | 'particle'): Promise<void> => {
+    if (!user || !userCurrency) return;
+
+    // Get the collectible to find its emoji
+    let collectibleEmoji = collectibleId;
+    if (!isOfflineMode(forceOffline)) {
+      try {
+        const { data: collectible, error } = await supabase
+          .from('collectibles')
+          .select('emoji')
+          .eq('id', collectibleId)
+          .single();
+
+        if (collectible && !error) {
+          collectibleEmoji = collectible.emoji;
+        }
+      } catch (error) {
+        console.error('Failed to fetch collectible emoji:', error);
+      }
+    } else {
+      // In offline mode, map common IDs to emojis
+      const offlineEmojiMap: Record<string, string> = {
+        'sheep_sheep': '🐑',
+        'sheep_chick': '🐤',
+        'sheep_pig': '🐷',
+        'sheep_cow': '🐄',
+        'particle_star': '✧',
+        'particle_sparkle': '✨',
+        'particle_heart': '💖',
+        'particle_diamond': '💎'
+      };
+      collectibleEmoji = offlineEmojiMap[collectibleId] || collectibleId;
+    }
+
+    audioManager.playGuiSound();
+
+    const updatedCurrency: UserCurrency = {
+      ...userCurrency,
+      ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleEmoji } : { selected_particle: collectibleEmoji }),
+      updated_at: new Date().toISOString()
+    };
+
+    setUserCurrency(updatedCurrency);
+
+    if (isOfflineMode(forceOffline)) {
+      if (type === 'sheep_emoji') {
+        localStorage.setItem('offline_selected_sheep_emoji', collectibleEmoji);
+      } else {
+        localStorage.setItem('offline_selected_particle', collectibleEmoji);
+      }
+    } else {
+      try {
+        await supabase
+          .from('user_currency')
+          .update({
+            ...(type === 'sheep_emoji' ? { selected_sheep_emoji: collectibleEmoji } : { selected_particle: collectibleEmoji }),
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Failed to select collectible:', error);
+      }
+    }
   }, [user, userCurrency, forceOffline]);
 
   const selectTheme = useCallback(async (themeId: string): Promise<void> => {
@@ -602,11 +1032,39 @@ export const useGameState = () => {
     setGlobalStats(updatedStats);
     setUserStats(updatedUserStats);
     
+    // Auto-award sheep gems every 500 clicks for tier 5+ users
+    let updatedCurrency = userCurrency;
+    if (newTier >= 5 && newClickCount % 500 === 0) {
+      const gemsToAward = 1;
+      updatedCurrency = {
+        ...userCurrency,
+        sheep_gems: userCurrency.sheep_gems + gemsToAward,
+        updated_at: new Date().toISOString()
+      };
+      setUserCurrency(updatedCurrency);
+      
+      if (isOfflineMode(forceOffline)) {
+        localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+      } else {
+        try {
+          await supabase
+            .from('user_currency')
+            .update({
+              sheep_gems: updatedCurrency.sheep_gems,
+              updated_at: updatedCurrency.updated_at
+            })
+            .eq('user_id', user.id);
+        } catch (error) {
+          console.error('Failed to update sheep gems:', error);
+        }
+      }
+    }
+    
     // Award wool coins every 10 clicks for Shepherd tier and above
     if (newTier >= 1 && newClickCount % 100 === 0) {
       const coinsToAward = Math.max(1, Math.floor(newTier / 2)); // More coins for higher tiers
-      const updatedCurrency = {
-        ...userCurrency,
+      updatedCurrency = {
+        ...updatedCurrency,
         wool_coins: userCurrency.wool_coins + coinsToAward,
         updated_at: new Date().toISOString()
       };
@@ -761,39 +1219,24 @@ export const useGameState = () => {
       return;
     }
 
-    // Set up real-time subscriptions
-    const statsSubscription = supabase
-      .channel('global_stats')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'global_stats'
-      }, (payload) => {
-        setGlobalStats(payload.new as GlobalStats);
-      })
-      .subscribe();
-
-    const chatSubscription = supabase
+    //
+    // Set up real-time subscriptions for chat messages
+    const channel = supabase
       .channel('chat_messages')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'chat_messages'
       }, (payload) => {
-        // Play gentle notification sound for new messages (but not from current user)
         const newMessage = payload.new as ChatMessage;
-        if (user && newMessage.user_id !== user.id) {
-          audioManager.playNotificationSound();
-        }
-        setChatMessages(prev => [payload.new as ChatMessage, ...prev.slice(0, 49)]);
+        setChatMessages(prev => [newMessage, ...prev].slice(0, 50));
       })
       .subscribe();
 
     return () => {
-      statsSubscription.unsubscribe();
-      chatSubscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [forceOffline, user]);
+  }, [forceOffline]);
 
   return {
     user,
@@ -801,15 +1244,18 @@ export const useGameState = () => {
     userStats,
     globalStats,
     chatMessages,
-    isOffline: isOfflineMode(forceOffline),
     loading,
     error,
     incrementSheep,
+    updateTier,
+    sendMessage,
+    updateNickname,
     claimDailyReward,
     purchaseTheme,
     selectTheme,
-    sendMessage,
-    updateNickname,
-    updateTier
+    claimDailyGems,
+    openEmbroideredBox,
+    purchaseCollectible,
+    selectCollectible
   };
 };
