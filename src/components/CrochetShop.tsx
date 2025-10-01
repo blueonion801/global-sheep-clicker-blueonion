@@ -363,10 +363,11 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                   <h5 className="text-blue-400 font-medium mb-2">📦 Box Rewards:</h5>
                   <ul className="text-sm text-gray-300 space-y-1">
                     <li>• Daily boxes: 2 rewards each with 55% coins (10-30), 35% gems (2-8), 10% collectible</li>
-                    <li>• Premium boxes: 1 reward with 20% coins (20-40), 25% gems (5-15), 55% collectible</li>
+                    <li>• Premium boxes: 1 reward with 20% coins (20-40), 25% gems (5-15), 55% collectible (40 gems or 500 coins)</li>
                     <li>• Collectible rarities - Daily: 7% normal, 2% epic, 1% legendary</li>
                     <li>• Collectible rarities - Premium: 35% normal, 15% epic, 5% legendary</li>
                     <li>• Earn 1 gem automatically every 500 clicks (Tier 5+)</li>
+                    <li>• Free collectibles are available to select immediately</li>
                   </ul>
                 </div>
               )}
@@ -427,28 +428,20 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                       )}
                       
                       {!isOwned && collectible.rarity !== 'legendary' && (
-                        <>
-                          {collectible.gem_cost === 0 ? (
-                            <span className="text-xs text-green-400 px-2 py-1 rounded-full bg-green-900/20 block">
-                              Available
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handlePurchaseCollectible(collectible.id)}
-                              disabled={disabled || !canAfford}
-                              className={`
-                                text-xs px-2 py-1 rounded-full w-full transition-colors flex items-center justify-center gap-1
-                                ${canAfford && !disabled
-                                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                }
-                              `}
-                            >
-                              <Gem className="w-3 h-3" />
-                              {collectible.gem_cost}
-                            </button>
-                          )}
-                        </>
+                        <button
+                          onClick={() => handlePurchaseCollectible(collectible.id)}
+                          disabled={disabled || (!canAfford && collectible.gem_cost > 0)}
+                          className={`
+                            text-xs px-2 py-1 rounded-full w-full transition-colors flex items-center justify-center gap-1
+                            ${(canAfford || collectible.gem_cost === 0) && !disabled
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                            }
+                          `}
+                        >
+                          <Gem className="w-3 h-3" />
+                          {collectible.gem_cost === 0 ? 'Free' : collectible.gem_cost}
+                        </button>
                       )}
                       
                       {collectible.rarity === 'legendary' && !isOwned && (

@@ -630,6 +630,20 @@ export const useGameState = () => {
         return false; // Already owned
       }
 
+      // For free collectibles, just add them without cost
+      if (collectible.gem_cost === 0) {
+        await supabase
+          .from('user_collectibles')
+          .insert([{
+            user_id: user.id,
+            collectible_id: collectibleId,
+            obtained_from: 'free'
+          }]);
+
+        audioManager.playTierUpSound();
+        return true;
+      }
+
       // Deduct gems if not free
       if (collectible.gem_cost > 0) {
         const updatedCurrency: UserCurrency = {
