@@ -252,7 +252,6 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
             <span className="text-gray-400">Sheep Gems</span>
           </div>
           <div className="text-sm text-gray-400">
-            Auto-earned every 500 clicks (Tier 5+)
           </div>
         </div>
       </div>
