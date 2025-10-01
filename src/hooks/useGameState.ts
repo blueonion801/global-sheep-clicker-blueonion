@@ -355,6 +355,15 @@ export const useGameState = () => {
     if (boxType === 'purchased' && userCurrency.sheep_gems < 40) {
       return null;
     }
+    
+    // Check if daily box was already claimed today
+    if (boxType === 'daily') {
+      const today = new Date().toDateString();
+      const lastClaim = userCurrency.last_daily_claim ? new Date(userCurrency.last_daily_claim).toDateString() : null;
+      if (lastClaim === today) {
+        return null; // Already claimed today
+      }
+    }
 
     audioManager.playTierUpSound();
 
@@ -494,6 +503,11 @@ export const useGameState = () => {
     // Update currency based on reward and box cost
     let updatedCurrency = { ...userCurrency };
     
+    // Update last daily claim for daily boxes
+    if (boxType === 'daily') {
+      updatedCurrency.last_daily_claim = new Date().toISOString();
+    }
+    
     if (boxType === 'purchased') {
       updatedCurrency.sheep_gems -= 40;
     }
@@ -513,6 +527,9 @@ export const useGameState = () => {
     if (isOfflineMode(forceOffline)) {
       localStorage.setItem('offline_wool_coins', updatedCurrency.wool_coins.toString());
       localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+      if (boxType === 'daily') {
+        localStorage.setItem('offline_last_daily_claim', updatedCurrency.last_daily_claim);
+      }
     } else {
       try {
         await supabase
@@ -520,6 +537,7 @@ export const useGameState = () => {
           .update({
             wool_coins: updatedCurrency.wool_coins,
             sheep_gems: updatedCurrency.sheep_gems,
+            ...(boxType === 'daily' ? { last_daily_claim: updatedCurrency.last_daily_claim } : {}),
             updated_at: updatedCurrency.updated_at
           })
           .eq('user_id', user.id);

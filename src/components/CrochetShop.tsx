@@ -99,8 +99,10 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
   };
 
   const canClaimDailyBox = () => {
-    // For now, assume same logic as gems - could be separate in future
-    return canClaimDailyGems();
+    if (!userCurrency.last_daily_claim) return true;
+    const lastClaim = new Date(userCurrency.last_daily_claim);
+    const today = new Date();
+    return lastClaim.toDateString() !== today.toDateString();
   };
 
   const handleClaimDailyGems = async () => {
