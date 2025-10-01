@@ -60,7 +60,6 @@ function App() {
   );
 }
 
-function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline, loading }: {
 function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, claimDailyGems, openEmbroideredBox, purchaseCollectible, selectCollectible, sendMessage, updateNickname, updateTier, isOffline, loading }: {
   user: any;
   userCurrency: any;
