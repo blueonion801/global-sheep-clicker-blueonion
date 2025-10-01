@@ -457,6 +457,60 @@ export const useGameState = () => {
     return { rewards, totalRewards: numRewards };
   }, [user, userCurrency, forceOffline]);
 
+  const generateRandomCollectible = async (): Promise<any | null> => {
+    if (isOfflineMode(forceOffline)) {
+      // Return a mock collectible for offline mode
+      const mockCollectibles = [
+        { id: 'sheep_chick', name: 'Chick', emoji: '🐤', type: 'sheep_emoji', rarity: 'normal' },
+        { id: 'sheep_pig', name: 'Pig', emoji: '🐷', type: 'sheep_emoji', rarity: 'normal' },
+        { id: 'particle_sparkle', name: 'Sparkle', emoji: '✨', type: 'particle', rarity: 'epic' },
+        { id: 'particle_heart', name: 'Heart', emoji: '💖', type: 'particle', rarity: 'epic' }
+      ];
+      return mockCollectibles[Math.floor(Math.random() * mockCollectibles.length)];
+    }
+
+    try {
+      // Get all collectibles that can be obtained from boxes
+      const { data: allCollectibles, error } = await supabase
+        .from('collectibles')
+        .select('*');
+
+      if (error || !allCollectibles || allCollectibles.length === 0) {
+        return null;
+      }
+
+      // Filter by rarity chances: 60% normal, 30% epic, 10% legendary
+      const rarityRand = Math.random();
+      let targetRarity: string;
+      
+      if (rarityRand < 0.6) {
+        targetRarity = 'normal';
+      } else if (rarityRand < 0.9) {
+        targetRarity = 'epic';
+      } else {
+        targetRarity = 'legendary';
+      }
+
+      // Get collectibles of target rarity
+      const rarityCollectibles = allCollectibles.filter(c => c.rarity === targetRarity);
+      
+      // If no collectibles of target rarity, fall back to normal
+      const availableCollectibles = rarityCollectibles.length > 0 
+        ? rarityCollectibles 
+        : allCollectibles.filter(c => c.rarity === 'normal');
+
+      if (availableCollectibles.length === 0) {
+        return null;
+      }
+
+      // Return random collectible from available ones
+      return availableCollectibles[Math.floor(Math.random() * availableCollectibles.length)];
+    } catch (error) {
+      console.error('Failed to generate random collectible:', error);
+      return null;
+    }
+  };
+
   const purchaseCollectible = useCallback(async (collectibleId: string): Promise<boolean> => {
     if (!user || !userCurrency) return false;
 

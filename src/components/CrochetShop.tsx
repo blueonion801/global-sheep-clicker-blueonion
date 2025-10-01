@@ -232,9 +232,10 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
           <button
             onClick={toggleExpanded}
             className="text-gray-400 hover:text-white transition-colors p-1 rounded"
-          >
+                  <li>• Each reward: 30% coins (10-30), 40% gems (2-8), 30% collectible</li>
             {isExpanded ? (
               <ChevronUp className="w-5 h-5" />
+                  <li>• Collectibles: 60% normal, 30% epic, 10% legendary rarity</li>
             ) : (
               <ChevronDown className="w-5 h-5" />
             )}
