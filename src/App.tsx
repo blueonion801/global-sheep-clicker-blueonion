@@ -71,6 +71,10 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   openEmbroideredBox: (boxType: 'daily' | 'purchased') => Promise<any>;
   purchaseCollectible: (collectibleId: string) => Promise<boolean>;
   selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
+  claimDailyGems: () => void;
+  openEmbroideredBox: (boxType: 'daily' | 'purchased') => Promise<any>;
+  purchaseCollectible: (collectibleId: string) => Promise<boolean>;
+  selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
   sendMessage: (message: string) => void;
   updateNickname: (nickname: string) => void;
   updateTier: (tier: number) => void;
