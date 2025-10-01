@@ -46,6 +46,10 @@ function App() {
         openEmbroideredBox={openEmbroideredBox}
         purchaseCollectible={purchaseCollectible}
         selectCollectible={selectCollectible}
+        claimDailyGems={claimDailyGems}
+        openEmbroideredBox={openEmbroideredBox}
+        purchaseCollectible={purchaseCollectible}
+        selectCollectible={selectCollectible}
         sendMessage={sendMessage}
         updateNickname={updateNickname}
         updateTier={updateTier}
