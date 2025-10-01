@@ -368,7 +368,6 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                     <li>• Collectible rarities - Daily: 7% normal, 2% epic, 1% legendary</li>
                     <li>• Collectible rarities - Premium: 35% normal, 15% epic, 5% legendary</li>
                     <li>• Earn 1 gem automatically every 500 clicks (Tier 5+)</li>
-                    <li>• Free collectibles are available to select immediately</li>
                   </ul>
                 </div>
               )}
