@@ -262,6 +262,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
                   userCurrency={userCurrency}
                   onClaimDailyGems={claimDailyGems}
                   onOpenBox={openEmbroideredBox}
+                  onOpenBoxWithCoins={openEmbroideredBoxWithCoins}
                   onPurchaseCollectible={purchaseCollectible}
                   onSelectCollectible={selectCollectible}
                   disabled={loading || isOffline}
@@ -294,6 +295,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
               userCurrency={userCurrency}
               onClaimDailyGems={claimDailyGems}
               onOpenBox={openEmbroideredBox}
+              onOpenBoxWithCoins={openEmbroideredBoxWithCoins}
               onPurchaseCollectible={purchaseCollectible}
               onSelectCollectible={selectCollectible}
               disabled={loading || isOffline}

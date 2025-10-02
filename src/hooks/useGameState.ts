@@ -1287,6 +1287,7 @@ export const useGameState = () => {
     selectTheme,
     claimDailyGems,
     openEmbroideredBox,
+    openEmbroideredBoxWithCoins,
     purchaseCollectible,
     selectCollectible
   };
