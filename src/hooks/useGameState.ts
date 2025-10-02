@@ -359,7 +359,7 @@ export const useGameState = () => {
     // Check if daily box was already claimed today
     if (boxType === 'daily') {
       const today = new Date().toDateString();
-      const lastClaim = userCurrency.last_daily_claim ? new Date(userCurrency.last_daily_claim).toDateString() : null;
+      const lastClaim = userCurrency.last_daily_box_claim ? new Date(userCurrency.last_daily_box_claim).toDateString() : null;
       if (lastClaim === today) {
         return null; // Already claimed today
       }
@@ -505,7 +505,7 @@ export const useGameState = () => {
     
     // Update last daily claim for daily boxes
     if (boxType === 'daily') {
-      updatedCurrency.last_daily_claim = new Date().toISOString();
+      updatedCurrency.last_daily_box_claim = new Date().toISOString();
     }
     
     if (boxType === 'purchased') {

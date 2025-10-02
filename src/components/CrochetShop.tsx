@@ -10,6 +10,7 @@ interface CrochetShopProps {
   userCurrency: UserCurrency;
   onClaimDailyGems: () => Promise<void>;
   onOpenBox: (boxType: 'daily' | 'purchased') => Promise<BoxReward | null>;
+  onOpenBoxWithCoins: (boxType: 'purchased') => Promise<BoxReward | null>;
   onPurchaseCollectible: (collectibleId: string) => Promise<boolean>;
   onSelectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
   disabled?: boolean;
@@ -20,6 +21,7 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
   userCurrency,
   onClaimDailyGems,
   onOpenBox,
+  onOpenBoxWithCoins,
   onPurchaseCollectible,
   onSelectCollectible,
   disabled,
@@ -99,8 +101,8 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
   };
 
   const canClaimDailyBox = () => {
-    if (!userCurrency.last_daily_claim) return true;
-    const lastClaim = new Date(userCurrency.last_daily_claim);
+    if (!userCurrency.last_daily_box_claim) return true;
+    const lastClaim = new Date(userCurrency.last_daily_box_claim);
     const today = new Date();
     return lastClaim.toDateString() !== today.toDateString();
   };
@@ -142,6 +144,28 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
     }
   };
 
+  const handleOpenBoxWithCoins = async (boxType: 'purchased') => {
+    if (isOpeningBox) return;
+    if (userCurrency.wool_coins < 500) return;
+    
+    setIsOpeningBox(true);
+    setCurrentBoxType(boxType);
+    
+    try {
+      const reward = await onOpenBoxWithCoins(boxType);
+      if (reward) {
+        setCurrentBoxRewards(reward.rewards || []);
+        setShowBoxModal(true);
+        
+        // Refresh user collectibles if a collectible was obtained
+        if (reward.rewards && reward.rewards.some((r: any) => r.type === 'collectible')) {
+          await fetchUserCollectibles();
+        }
+      }
+    } finally {
+      setIsOpeningBox(false);
+    }
+  };
   const handleCloseBoxModal = () => {
     setShowBoxModal(false);
     setCurrentBoxRewards(null);
@@ -316,8 +340,8 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                     </button>
                   </div>
                 </div>
-
-                {/* Purchase Box */}
+                       onClick={() => handleOpenBoxWithCoins('purchased')}
+                       disabled={disabled || isOpeningBox || userCurrency.wool_coins < 500}
                 <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-lg p-4">
                   <div className="text-center">
                     <ShoppingBag className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
@@ -345,14 +369,14 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                        disabled={disabled || isOpeningBox || (userCurrency.sheep_gems < 40 && userCurrency.wool_coins < 500)}
                         className={`
                           w-full py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 text-sm
-                         ${(userCurrency.sheep_gems >= 40 || userCurrency.wool_coins >= 500) && !disabled
+                         ${userCurrency.wool_coins >= 500 && !disabled
                             ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                             : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                           }
                         `}
                       >
                         <Coins className="w-4 h-4" />
-                       {isOpeningBox ? 'Opening...' : userCurrency.sheep_gems >= 40 ? '500 Coins (Alt)' : '500 Coins'}
+                       {isOpeningBox ? 'Opening...' : '500 Coins'}
                       </button>
                     </div>
                   </div>
