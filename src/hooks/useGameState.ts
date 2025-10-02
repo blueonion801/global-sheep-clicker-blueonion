@@ -1288,6 +1288,7 @@ export const useGameState = () => {
     claimDailyGems,
     openEmbroideredBox,
     openEmbroideredBoxWithCoins,
+    openEmbroideredBoxWithCoins,
     purchaseCollectible,
     selectCollectible
   };
