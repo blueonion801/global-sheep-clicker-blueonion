@@ -69,7 +69,6 @@ export const useGameState = () => {
           user_id: userId,
           wool_coins: 0,
           last_daily_claim: null,
-          last_daily_box_claim: null,
           consecutive_days: 0,
           selected_theme: 'cosmic',
           unlocked_themes: ['cosmic'],
@@ -529,7 +528,7 @@ export const useGameState = () => {
       localStorage.setItem('offline_wool_coins', updatedCurrency.wool_coins.toString());
       localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
       if (boxType === 'daily') {
-        localStorage.setItem('offline_last_daily_claim', updatedCurrency.last_daily_claim);
+        localStorage.setItem('offline_last_daily_box_claim', updatedCurrency.last_daily_box_claim || '');
       }
     } else {
       try {
@@ -538,7 +537,7 @@ export const useGameState = () => {
           .update({
             wool_coins: updatedCurrency.wool_coins,
             sheep_gems: updatedCurrency.sheep_gems,
-            ...(boxType === 'daily' ? { last_daily_claim: updatedCurrency.last_daily_claim } : {}),
+            ...(boxType === 'daily' ? { last_daily_box_claim: updatedCurrency.last_daily_box_claim } : {}),
             updated_at: updatedCurrency.updated_at
           })
           .eq('user_id', user.id);

@@ -342,17 +342,17 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                       </button>
                       <button
                         onClick={() => handleOpenBox('purchased')}
-                        disabled={disabled || isOpeningBox || userCurrency.wool_coins < 500}
+                       disabled={disabled || isOpeningBox || (userCurrency.sheep_gems < 40 && userCurrency.wool_coins < 500)}
                         className={`
                           w-full py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 text-sm
-                          ${userCurrency.wool_coins >= 500 && !disabled
+                         ${(userCurrency.sheep_gems >= 40 || userCurrency.wool_coins >= 500) && !disabled
                             ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                             : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                           }
                         `}
                       >
                         <Coins className="w-4 h-4" />
-                        {isOpeningBox ? 'Opening...' : '500 Coins'}
+                       {isOpeningBox ? 'Opening...' : userCurrency.sheep_gems >= 40 ? '500 Coins (Alt)' : '500 Coins'}
                       </button>
                     </div>
                   </div>
