@@ -69,6 +69,7 @@ export const useGameState = () => {
           user_id: userId,
           wool_coins: 0,
           last_daily_claim: null,
+          last_daily_box_claim: null,
           consecutive_days: 0,
           selected_theme: 'cosmic',
           unlocked_themes: ['cosmic'],
