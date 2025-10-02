@@ -13,6 +13,7 @@ export interface UserCurrency {
   wool_coins: number;
   sheep_gems: number;
   last_daily_claim: string | null;
+  last_daily_box_claim: string | null;
   last_gem_claim: string | null;
   consecutive_days: number;
   selected_theme: string;
