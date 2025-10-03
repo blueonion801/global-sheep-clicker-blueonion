@@ -60,7 +60,7 @@ function App() {
   );
 }
 
-function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, claimDailyGems, openEmbroideredBox, purchaseCollectible, selectCollectible, sendMessage, updateNickname, updateTier, isOffline, loading }: {
+function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, claimDailyGems, openEmbroideredBox, openEmbroideredBoxWithCoins, purchaseCollectible, selectCollectible, sendMessage, updateNickname, updateTier, isOffline, loading }: {
   user: any;
   userCurrency: any;
   userStats: any;
@@ -73,6 +73,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   selectTheme: (themeId: string) => void;
   claimDailyGems: () => void;
   openEmbroideredBox: (boxType: 'daily' | 'purchased') => Promise<any>;
+  openEmbroideredBoxWithCoins: (boxType: 'daily' | 'purchased') => Promise<any>;
   purchaseCollectible: (collectibleId: string) => Promise<boolean>;
   selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
   sendMessage: (message: string) => void;
