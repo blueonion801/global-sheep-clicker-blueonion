@@ -207,6 +207,12 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           {/* Center Column - Main Game */}
           <div className="flex flex-col items-center justify-center space-y-12 xl:order-2">
             <div className="text-center">
+              {/* Debug info - remove this later */}
+              {userCurrency?.selected_sheep_emoji && (
+                <div className="text-xs text-gray-500 mb-2">
+                  Debug: Selected emoji is "{userCurrency.selected_sheep_emoji}"
+                </div>
+              )}
               <h2 className="text-4xl font-bold mb-8">
                 Click the {userCurrency?.selected_sheep_emoji === '🐑' ? 'Sheep' : 
                           userCurrency?.selected_sheep_emoji === '🐤' ? 'Chick' :
