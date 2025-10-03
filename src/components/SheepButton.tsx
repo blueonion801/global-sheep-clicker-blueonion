@@ -58,7 +58,7 @@ export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled, use
           rounded-full shadow-2xl transition-all duration-300 text-6xl
           hover:scale-110 hover:shadow-xl active:scale-95
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${isAnimating ? 'animate-bounce scale-110' : ''}
+          ${isAnimating ? 'scale-110' : ''}
           border-4 border-white/20 backdrop-blur-sm
         `}
         style={{
@@ -70,9 +70,9 @@ export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled, use
         
         {/* Glow effect */}
         <div 
-          className={`absolute inset-0 rounded-full blur-xl -z-10 transition-all duration-300 ${isAnimating ? 'scale-125' : ''}`}
+          className={`absolute inset-0 rounded-full blur-xl -z-10 transition-all duration-300 ${isAnimating ? 'scale-125' : 'scale-100'}`}
           style={{
-            background: `linear-gradient(135deg, ${currentTheme.colors.primary}${isAnimating ? '50' : '30'}, ${currentTheme.colors.secondary}${isAnimating ? '50' : '30'})`
+            background: `radial-gradient(circle, ${currentTheme.colors.primary}${isAnimating ? '50' : '30'}, ${currentTheme.colors.secondary}${isAnimating ? '50' : '30'})`
           }}
         />
         
@@ -109,9 +109,9 @@ export const SheepButton: React.FC<SheepButtonProps> = ({ onClick, disabled, use
       {/* Additional visual feedback ring */}
       {isAnimating && (
         <div 
-          className="absolute inset-0 rounded-full animate-pulse pointer-events-none"
+          className="absolute inset-0 rounded-full animate-pulse pointer-events-none -z-10"
           style={{
-            background: `conic-gradient(from 0deg, ${currentTheme.colors.primary}40, ${currentTheme.colors.secondary}40, ${currentTheme.colors.accent}40, ${currentTheme.colors.primary}40)`,
+            background: `radial-gradient(circle, ${currentTheme.colors.primary}20, ${currentTheme.colors.secondary}20, transparent 70%)`,
             filter: 'blur(2px)',
             transform: 'scale(1.3)'
           }}
