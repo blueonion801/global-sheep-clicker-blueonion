@@ -15,7 +15,7 @@ import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff
 import { audioManager } from './utils/audioManager';
 
 function App() {
-  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, claimDailyGems, openEmbroideredBox, purchaseCollectible, selectCollectible, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
+  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, claimDailyGems, openEmbroideredBox, openEmbroideredBoxWithCoins, purchaseCollectible, selectCollectible, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
 
   if (loading) {
     return (
@@ -44,10 +44,7 @@ function App() {
         selectTheme={selectTheme}
         claimDailyGems={claimDailyGems}
         openEmbroideredBox={openEmbroideredBox}
-        purchaseCollectible={purchaseCollectible}
-        selectCollectible={selectCollectible}
-        claimDailyGems={claimDailyGems}
-        openEmbroideredBox={openEmbroideredBox}
+        openEmbroideredBoxWithCoins={openEmbroideredBoxWithCoins}
         purchaseCollectible={purchaseCollectible}
         selectCollectible={selectCollectible}
         sendMessage={sendMessage}

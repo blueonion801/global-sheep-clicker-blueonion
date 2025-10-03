@@ -1407,6 +1407,7 @@ export const useGameState = () => {
     openEmbroideredBox,
     openEmbroideredBoxWithCoins,
     purchaseCollectible,
-    selectCollectible
+    selectCollectible,
+    isOffline: isOfflineMode(forceOffline)
   };
 };
