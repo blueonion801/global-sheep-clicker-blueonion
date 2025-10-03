@@ -342,6 +342,7 @@ export const CrochetShop: React.FC<CrochetShopProps> = ({
                 </div>
                        onClick={() => handleOpenBoxWithCoins('purchased')}
                        disabled={disabled || isOpeningBox || userCurrency.wool_coins < 500}
+                
                 <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-lg p-4">
                   <div className="text-center">
                     <ShoppingBag className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
