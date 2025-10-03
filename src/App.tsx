@@ -207,11 +207,24 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           {/* Center Column - Main Game */}
           <div className="flex flex-col items-center justify-center space-y-12 xl:order-2">
             <div className="text-center">
-              <h2 className="text-4xl font-bold mb-8">Click the Sheep!</h2>
+              <h2 className="text-4xl font-bold mb-8">
+                Click the {userCurrency?.selected_sheep_emoji === '🐑' ? 'Sheep' : 
+                          userCurrency?.selected_sheep_emoji === '🐤' ? 'Chick' :
+                          userCurrency?.selected_sheep_emoji === '🐷' ? 'Pig' :
+                          userCurrency?.selected_sheep_emoji === '🐄' ? 'Cow' :
+                          userCurrency?.selected_sheep_emoji === '🐰' ? 'Bunny' :
+                          userCurrency?.selected_sheep_emoji === '🐸' ? 'Frog' :
+                          userCurrency?.selected_sheep_emoji === '🐧' ? 'Penguin' :
+                          userCurrency?.selected_sheep_emoji === '🦄' ? 'Unicorn' :
+                          userCurrency?.selected_sheep_emoji === '🐉' ? 'Dragon' :
+                          'Animal'}!
+              </h2>
               <SheepButton onClick={incrementSheep} disabled={isOffline} userCurrency={userCurrency} />
-              <p className="text-gray-400 mt-6 text-base">
-                Every click counts towards the global total
-              </p>
+              {hintsEnabled && (
+                <p className="text-gray-400 mt-6 text-base">
+                  Every click counts towards the global total
+                </p>
+              )}
             </div>
 
             {/* Welcome message for new users */}
