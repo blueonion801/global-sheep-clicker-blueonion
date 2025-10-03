@@ -609,6 +609,124 @@ export const useGameState = () => {
     }
   };
 
+  const openEmbroideredBoxWithCoins = useCallback(async (boxType: 'purchased'): Promise<any> => {
+    if (!user || !userCurrency) return null;
+
+    // Check if user can open the box with coins
+    if (userCurrency.wool_coins < 500) {
+      return null;
+    }
+
+    audioManager.playTierUpSound();
+
+    // Generate rewards (1 for purchased box)
+    const numRewards = 1;
+    const rewards = [];
+    
+    for (let i = 0; i < numRewards; i++) {
+      const rand = Math.random();
+      let reward: any;
+
+      // Premium box chances: 20% coins, 25% gems, 55% collectible
+      if (rand < 0.2) {
+        // 20% chance for coins
+        const amount = Math.floor(Math.random() * 21) + 20; // 20-40 coins
+        reward = {
+          type: 'coins',
+          amount: amount
+        };
+      } else if (rand < 0.45) {
+        // 25% chance for gems
+        const amount = Math.floor(Math.random() * 11) + 5; // 5-15 gems
+        reward = {
+          type: 'gems',
+          amount: amount
+        };
+      } else {
+        // 55% chance for collectible (35% normal, 15% epic, 5% legendary)
+        const collectibleRand = Math.random();
+        let targetRarity: string;
+        
+        if (collectibleRand < 0.636) {
+          targetRarity = 'normal'; // 35% of total (63.6% of 55%)
+        } else if (collectibleRand < 0.909) {
+          targetRarity = 'epic'; // 15% of total (27.3% of 55%)
+        } else {
+          targetRarity = 'legendary'; // 5% of total (9.1% of 55%)
+        }
+        
+        const collectible = await generateRandomCollectible(targetRarity);
+        if (collectible) {
+          reward = {
+            type: 'collectible',
+            collectible: collectible
+          };
+          
+          // Add to user collectibles if not already owned
+          try {
+            await supabase
+              .from('user_collectibles')
+              .insert([{
+                user_id: user.id,
+                collectible_id: collectible.id,
+                obtained_from: 'box'
+              }]);
+          } catch (error) {
+            // Ignore duplicate key errors (already owned)
+            if (!error.message?.includes('duplicate key')) {
+              console.error('Failed to add collectible to user:', error);
+            }
+          }
+        } else {
+          // Fallback to gems if no collectible available
+          const amount = Math.floor(Math.random() * 11) + 5;
+          reward = {
+            type: 'gems',
+            amount: amount
+          };
+        }
+      }
+      
+      rewards.push(reward);
+    }
+
+    // Update currency - deduct 500 coins for purchased box
+    let updatedCurrency = { ...userCurrency };
+    updatedCurrency.wool_coins -= 500;
+
+    // Apply all rewards
+    for (const reward of rewards) {
+      if (reward.type === 'coins') {
+        updatedCurrency.wool_coins += reward.amount;
+      } else if (reward.type === 'gems') {
+        updatedCurrency.sheep_gems += reward.amount;
+      }
+    }
+
+    updatedCurrency.updated_at = new Date().toISOString();
+    setUserCurrency(updatedCurrency);
+
+    if (isOfflineMode(forceOffline)) {
+      localStorage.setItem('offline_wool_coins', updatedCurrency.wool_coins.toString());
+      localStorage.setItem('offline_sheep_gems', updatedCurrency.sheep_gems.toString());
+    } else {
+      try {
+        await supabase
+          .from('user_currency')
+          .update({
+            wool_coins: updatedCurrency.wool_coins,
+            sheep_gems: updatedCurrency.sheep_gems,
+            updated_at: updatedCurrency.updated_at
+          })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Failed to open embroidered box with coins:', error);
+      }
+    }
+
+    return { rewards, totalRewards: numRewards };
+  }, [user, userCurrency, forceOffline, generateRandomCollectible]);
+
   const purchaseCollectible = useCallback(async (collectibleId: string): Promise<boolean> => {
     if (!user || !userCurrency) return false;
 
@@ -1287,7 +1405,6 @@ export const useGameState = () => {
     selectTheme,
     claimDailyGems,
     openEmbroideredBox,
-    openEmbroideredBoxWithCoins,
     openEmbroideredBoxWithCoins,
     purchaseCollectible,
     selectCollectible
