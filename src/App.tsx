@@ -207,21 +207,14 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           {/* Center Column - Main Game */}
           <div className="flex flex-col items-center justify-center space-y-12 xl:order-2">
             <div className="text-center">
-              {/* Debug info - remove this later */}
-              {userCurrency?.selected_sheep_emoji && (
-                <div className="text-xs text-gray-500 mb-2">
-                  Debug: Selected emoji is "{userCurrency.selected_sheep_emoji}"
-                </div>
-              )}
               <h2 className="text-4xl font-bold mb-8">
                 Click the {(() => {
                   const emoji = userCurrency?.selected_sheep_emoji;
                   if (!emoji) return 'Sheep';
-                  
-                  // Create a mapping object for cleaner lookup
-                  const emojiNames = {
-                    '🐑': 'Sheep',
-                    '🐤': 'Chick', 
+
+                  const emojiNames: Record<string, string> = {
+                    '��': 'Sheep',
+                    '🐤': 'Chick',
                     '🐷': 'Pig',
                     '🐄': 'Cow',
                     '🐰': 'Bunny',
@@ -230,7 +223,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
                     '🦄': 'Unicorn',
                     '🐉': 'Dragon'
                   };
-                  
+
                   return emojiNames[emoji] || 'Animal';
                 })()}!
               </h2>
