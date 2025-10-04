@@ -214,16 +214,25 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
                 </div>
               )}
               <h2 className="text-4xl font-bold mb-8">
-                Click the {userCurrency?.selected_sheep_emoji === '🐑' ? 'Sheep' : 
-                          userCurrency?.selected_sheep_emoji === '🐤' ? 'Chick' :
-                          userCurrency?.selected_sheep_emoji === '🐷' ? 'Pig' :
-                          userCurrency?.selected_sheep_emoji === '🐄' ? 'Cow' :
-                          userCurrency?.selected_sheep_emoji === '🐰' ? 'Bunny' :
-                          userCurrency?.selected_sheep_emoji === '🐸' ? 'Frog' :
-                          userCurrency?.selected_sheep_emoji === '🐧' ? 'Penguin' :
-                          userCurrency?.selected_sheep_emoji === '🦄' ? 'Unicorn' :
-                          userCurrency?.selected_sheep_emoji === '🐉' ? 'Dragon' :
-                          'Animal'}!
+                Click the {(() => {
+                  const emoji = userCurrency?.selected_sheep_emoji;
+                  if (!emoji) return 'Sheep';
+                  
+                  // Create a mapping object for cleaner lookup
+                  const emojiNames = {
+                    '🐑': 'Sheep',
+                    '🐤': 'Chick', 
+                    '🐷': 'Pig',
+                    '🐄': 'Cow',
+                    '🐰': 'Bunny',
+                    '🐸': 'Frog',
+                    '🐧': 'Penguin',
+                    '🦄': 'Unicorn',
+                    '🐉': 'Dragon'
+                  };
+                  
+                  return emojiNames[emoji] || 'Animal';
+                })()}!
               </h2>
               <SheepButton onClick={incrementSheep} disabled={isOffline} userCurrency={userCurrency} />
               {hintsEnabled && (
