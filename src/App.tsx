@@ -28,6 +28,8 @@ function getEmojiName(emoji: string | undefined): string {
   emojiToName['\uD83E\uDD84'] = 'Unicorn';    // 🦄
   emojiToName['\uD83D\uDC09'] = 'Dragon';     // 🐉
 
+  console.log('getEmojiName called with:', emoji, 'Result:', emojiToName[emoji] || 'Animal');
+
   return emojiToName[emoji] || 'Animal';
 }
 
