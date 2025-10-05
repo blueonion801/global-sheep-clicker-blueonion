@@ -1369,9 +1369,8 @@ export const useGameState = () => {
       return;
     }
 
-    //
-    // Set up real-time subscriptions for chat messages
-    const channel = supabase
+    // Set up real-time subscriptions for chat messages and global stats
+    const chatChannel = supabase
       .channel('chat_messages')
       .on('postgres_changes', {
         event: 'INSERT',
@@ -1383,8 +1382,21 @@ export const useGameState = () => {
       })
       .subscribe();
 
+    const globalStatsChannel = supabase
+      .channel('global_stats')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'global_stats'
+      }, (payload) => {
+        const updatedStats = payload.new as GlobalStats;
+        setGlobalStats(updatedStats);
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(chatChannel);
+      supabase.removeChannel(globalStatsChannel);
     };
   }, [forceOffline]);
 
