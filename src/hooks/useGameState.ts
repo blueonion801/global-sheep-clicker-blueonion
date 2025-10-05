@@ -1255,13 +1255,15 @@ export const useGameState = () => {
             created_at: new Date().toISOString()
           };
 
-          try {
-            await supabase
-              .from('chat_messages')
-              .insert([tierUpMessage]);
-          } catch (error) {
-            console.error('Failed to post tier-up announcement:', error);
-          }
+          supabase
+            .from('chat_messages')
+            .insert([tierUpMessage])
+            .then(() => {
+              console.log('Tier-up announcement posted successfully');
+            })
+            .catch((error) => {
+              console.error('Failed to post tier-up announcement:', error);
+            });
         }
       }
     }
