@@ -20,6 +20,7 @@ function getEmojiName(emoji: string | undefined): string {
   const emojiToName: { [key: string]: string } = {};
   emojiToName['\uD83D\uDC11'] = 'Sheep';      // 🐑
   emojiToName['\uD83D\uDC24'] = 'Chick';      // 🐤
+  emojiToName['\uD83D\uDC25'] = 'Baby Chick'; // 🐥
   emojiToName['\uD83D\uDC37'] = 'Pig';        // 🐷
   emojiToName['\uD83D\uDC04'] = 'Cow';        // 🐄
   emojiToName['\uD83D\uDC30'] = 'Bunny';      // 🐰
