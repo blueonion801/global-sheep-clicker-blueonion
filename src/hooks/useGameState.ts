@@ -1237,9 +1237,33 @@ export const useGameState = () => {
       }
     }
     
-    // Play tier up sound if tier increased
+    // Play tier up sound and announce to chat if tier increased
     if (newTier > previousTier) {
       setTimeout(() => audioManager.playTierUpSound(), 100);
+
+      // Post tier-up announcement to chat
+      if (!isOfflineMode(forceOffline)) {
+        const tierInfo = TIERS.find(t => t.level === newTier);
+        if (tierInfo) {
+          const announcement = `🎉 ${user.nickname} has reached ${tierInfo.icon} ${tierInfo.name}! 🎉`;
+          const tierUpMessage: ChatMessage = {
+            id: crypto.randomUUID(),
+            user_id: 'system',
+            nickname: 'System',
+            message: announcement,
+            tier: 99,
+            created_at: new Date().toISOString()
+          };
+
+          try {
+            await supabase
+              .from('chat_messages')
+              .insert([tierUpMessage]);
+          } catch (error) {
+            console.error('Failed to post tier-up announcement:', error);
+          }
+        }
+      }
     }
     
     // Track pending clicks for batching
