@@ -14,6 +14,26 @@ import { CrochetShop } from './components/CrochetShop';
 import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 
+function getEmojiName(emoji: string | undefined): string {
+  if (!emoji) return 'Sheep';
+
+  const emojiToName: { [key: string]: string } = {};
+  emojiToName['\uD83D\uDC11'] = 'Sheep';      // 🐑
+  emojiToName['\uD83D\uDC24'] = 'Chick';      // 🐤
+  emojiToName['\uD83D\uDC25'] = 'Baby Chick'; // 🐥
+  emojiToName['\uD83D\uDC37'] = 'Pig';        // 🐷
+  emojiToName['\uD83D\uDC04'] = 'Cow';        // 🐄
+  emojiToName['\uD83D\uDC30'] = 'Bunny';      // 🐰
+  emojiToName['\uD83D\uDC38'] = 'Frog';       // 🐸
+  emojiToName['\uD83D\uDC27'] = 'Penguin';    // 🐧
+  emojiToName['\uD83E\uDD84'] = 'Unicorn';    // 🦄
+  emojiToName['\uD83D\uDC09'] = 'Dragon';     // 🐉
+
+  console.log('getEmojiName called with:', emoji, 'Result:', emojiToName[emoji] || 'Animal');
+
+  return emojiToName[emoji] || 'Animal';
+}
+
 function App() {
   const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, claimDailyGems, openEmbroideredBox, openEmbroideredBoxWithCoins, purchaseCollectible, selectCollectible, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
 
@@ -207,11 +227,15 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           {/* Center Column - Main Game */}
           <div className="flex flex-col items-center justify-center space-y-12 xl:order-2">
             <div className="text-center">
-              <h2 className="text-4xl font-bold mb-8">Click the Sheep!</h2>
+              <h2 className="text-4xl font-bold mb-8">
+                Click the {getEmojiName(userCurrency?.selected_sheep_emoji)}!
+              </h2>
               <SheepButton onClick={incrementSheep} disabled={isOffline} userCurrency={userCurrency} />
-              <p className="text-gray-400 mt-6 text-base">
-                Every click counts towards the global total
-              </p>
+              {hintsEnabled && (
+                <p className="text-gray-400 mt-6 text-base">
+                  Every click counts towards the global total
+                </p>
+              )}
             </div>
 
             {/* Welcome message for new users */}
