@@ -17,19 +17,50 @@ import { audioManager } from './utils/audioManager';
 function getEmojiName(emoji: string | undefined): string {
   if (!emoji) return 'Sheep';
 
-  const emojiToName: { [key: string]: string } = {};
-  emojiToName['\uD83D\uDC11'] = 'Sheep';      // 🐑
-  emojiToName['\uD83D\uDC24'] = 'Chick';      // 🐤
-  emojiToName['\uD83D\uDC25'] = 'Baby Chick'; // 🐥
-  emojiToName['\uD83D\uDC37'] = 'Pig';        // 🐷
-  emojiToName['\uD83D\uDC04'] = 'Cow';        // 🐄
-  emojiToName['\uD83D\uDC30'] = 'Bunny';      // 🐰
-  emojiToName['\uD83D\uDC38'] = 'Frog';       // 🐸
-  emojiToName['\uD83D\uDC27'] = 'Penguin';    // 🐧
-  emojiToName['\uD83E\uDD84'] = 'Unicorn';    // 🦄
-  emojiToName['\uD83D\uDC09'] = 'Dragon';     // 🐉
-
-  console.log('getEmojiName called with:', emoji, 'Result:', emojiToName[emoji] || 'Animal');
+  const emojiToName: { [key: string]: string } = {
+    "🐜": "Ant",
+    "🦡": "Badger",
+    "🦫": "Beaver",
+    "🐝": "Bee",
+    "🐦": "Bird",
+    "🦋": "Butterfly",
+    "🎠": "Carousel Horse",
+    "🐈": "Cat",
+    "🐥": "Chick",
+    "🐕": "Dog",
+    "🐬": "Dolphin",
+    "🐉": "Dragon",
+    "🦆": "Duck",
+    "🐟": "Fish",
+    "🦩": "Flamingo",
+    "🐐": "Goat",
+    "🦔": "Hedgehog",
+    "🐎": "Horse",
+    "🪼": "Jellyfish",
+    "🐞": "Ladybug",
+    "🐙": "Octopus",
+    "🦦": "Otter",
+    "🦉": "Owl",
+    "🦜": "Parrot",
+    "🦚": "Peacock",
+    "🐧": "Penguin",
+    "🐦‍🔥": "Phoenix",
+    "🐩": "Poodle",
+    "🐏": "Ram",
+    "🐑": "Sheep",
+    "🐚": "Shell",
+    "🦐": "Shrimp",
+    "🦨": "Skunk",
+    "🦥": "Sloth",
+    "🐌": "Snail",
+    "🦑": "Squid",
+    "🐿️": "Squirrel",
+    "🦢": "Swan",
+    "🦖": "T-Rex",
+    "🐠": "Tropical Fish",
+    "🦄": "Unicorn",
+    "🐳": "Whale"
+  };
 
   return emojiToName[emoji] || 'Animal';
 }
