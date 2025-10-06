@@ -258,7 +258,11 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           {/* Center Column - Main Game */}
           <div className="flex flex-col items-center justify-center space-y-12 xl:order-2">
             <div className="text-center">
-              <h2 className="text-4xl font-bold mb-8">
+              <h2 className={`text-4xl font-bold mb-8 ${
+                user && user.tier === 9
+                  ? 'bg-gradient-to-r from-red-400 via-yellow-400 via-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent'
+                  : ''
+              }`}>
                 Click the {getEmojiName(userCurrency?.selected_sheep_emoji)}!
               </h2>
               <SheepButton onClick={incrementSheep} disabled={isOffline} userCurrency={userCurrency} />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlobalStats, User, TIERS } from '../types/game';
-import { Trophy, Target, Edit2 } from 'lucide-react';
+import { Trophy, Target, CreditCard as Edit2 } from 'lucide-react';
 import { audioManager } from '../utils/audioManager';
 import { useTheme } from './ThemeProvider';
 
@@ -109,7 +109,14 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({
             <div className="mb-4">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <span className="text-2xl">{currentTier?.icon}</span>
-                <span className="text-lg font-semibold" style={{ color: currentTier?.color }}>
+                <span
+                  className={`text-lg font-semibold ${
+                    currentTier?.color === 'rainbow'
+                      ? 'bg-gradient-to-r from-red-400 via-yellow-400 via-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent'
+                      : ''
+                  }`}
+                  style={currentTier?.color !== 'rainbow' ? { color: currentTier?.color } : {}}
+                >
                   {currentTier?.name}
                 </span>
               </div>
