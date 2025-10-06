@@ -45,6 +45,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
       const { data, error } = await supabase
         .from('users')
         .select('id, nickname, total_clicks, tier')
+        .not('nickname', 'in', '(SheepDev,SheepDev2,SheepDev3)')
         .order('total_clicks', { ascending: false })
         .limit(3);
 
