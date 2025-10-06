@@ -12,8 +12,10 @@ import { useTheme } from './components/ThemeProvider';
 import { Leaderboard } from './components/Leaderboard';
 import { CrochetShop } from './components/CrochetShop';
 import { DeveloperMenu } from './components/DeveloperMenu';
-import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff, Code } from 'lucide-react';
+import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff, Code, LogIn, LogOut } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
+import { AuthModal } from './components/AuthModal';
+import { useAuth } from './contexts/AuthContext';
 
 function getEmojiName(emoji: string | undefined): string {
   if (!emoji) return 'Sheep';
@@ -138,7 +140,9 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   });
   const [showStatsMenu, setShowStatsMenu] = React.useState(false);
   const [showDeveloperMenu, setShowDeveloperMenu] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
   const { currentTheme } = useTheme();
+  const { isAuthenticated, username, logout } = useAuth();
 
   const isDeveloper = user && ['SheepDev', 'SheepDev2', 'SheepDev3'].includes(user.nickname);
 
@@ -169,6 +173,15 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   const toggleDeveloperMenu = () => {
     audioManager.playGuiSound();
     setShowDeveloperMenu(!showDeveloperMenu);
+  };
+
+  const handleAuthClick = () => {
+    audioManager.playGuiSound();
+    if (isAuthenticated) {
+      logout();
+    } else {
+      setShowAuthModal(true);
+    }
   };
 
   return (
@@ -222,33 +235,56 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           </div>
         </header>
 
-        {/* Stats Menu Toggle Button */}
-        <div className="fixed top-4 right-4 z-40 flex gap-2">
-          {isDeveloper && (
+        {/* Top Right Buttons */}
+        <div className="fixed top-4 right-4 z-40 flex flex-col gap-2">
+          <div className="flex gap-2">
+            {isDeveloper && (
+              <button
+                onClick={toggleDeveloperMenu}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
+                style={{
+                  backgroundColor: '#DC262690',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid #DC262630'
+                }}
+              >
+                <Code className="w-5 h-5" />
+                <span className="hidden sm:inline">Dev</span>
+              </button>
+            )}
             <button
-              onClick={toggleDeveloperMenu}
+              onClick={toggleStatsMenu}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
               style={{
-                backgroundColor: '#DC262690',
+                backgroundColor: `${currentTheme.colors.primary}90`,
                 backdropFilter: 'blur(10px)',
-                border: '1px solid #DC262630'
+                border: `1px solid ${currentTheme.colors.primary}30`
               }}
             >
-              <Code className="w-5 h-5" />
-              <span className="hidden sm:inline">Dev</span>
+              <BarChart3 className="w-5 h-5" />
+              <span className="hidden sm:inline">Stats</span>
             </button>
-          )}
+          </div>
           <button
-            onClick={toggleStatsMenu}
+            onClick={handleAuthClick}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
             style={{
-              backgroundColor: `${currentTheme.colors.primary}90`,
+              backgroundColor: isAuthenticated ? '#10b98190' : `${currentTheme.colors.secondary}90`,
               backdropFilter: 'blur(10px)',
-              border: `1px solid ${currentTheme.colors.primary}30`
+              border: isAuthenticated ? '1px solid #10b98130' : `1px solid ${currentTheme.colors.secondary}30`
             }}
           >
-            <BarChart3 className="w-5 h-5" />
-            <span className="hidden sm:inline">Stats</span>
+            {isAuthenticated ? (
+              <>
+                <LogOut className="w-5 h-5" />
+                <span className="hidden sm:inline">{username}</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5" />
+                <span className="hidden sm:inline">Log In</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -454,6 +490,9 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
         {/* Mobile footer spacer to prevent "made in bolt" button overlap */}
         <div className="block sm:hidden h-16"></div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }

@@ -1,0 +1,168 @@
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
+import bcrypt from 'bcryptjs';
+
+interface AuthContextType {
+  authUserId: string | null;
+  username: string | null;
+  isAuthenticated: boolean;
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  const checkSession = async () => {
+    try {
+      const storedAuthUserId = localStorage.getItem('auth_user_id');
+      const storedUsername = localStorage.getItem('auth_username');
+
+      if (storedAuthUserId && storedUsername) {
+        setAuthUserId(storedAuthUserId);
+        setUsername(storedUsername);
+      }
+    } catch (error) {
+      console.error('Error checking session:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (existingUser) {
+        return { success: false, error: 'Username already exists' };
+      }
+
+      const newAuthUserId = crypto.randomUUID();
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const currentUserId = localStorage.getItem('sheep_user_id');
+
+      if (currentUserId) {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            auth_user_id: newAuthUserId,
+            username: username,
+            password_hash: passwordHash
+          })
+          .eq('id', currentUserId);
+
+        if (updateError) {
+          return { success: false, error: updateError.message };
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([{
+            id: crypto.randomUUID(),
+            auth_user_id: newAuthUserId,
+            username: username,
+            password_hash: passwordHash,
+            nickname: username,
+            total_clicks: 0,
+            tier: 0
+          }]);
+
+        if (insertError) {
+          return { success: false, error: insertError.message };
+        }
+      }
+
+      localStorage.setItem('auth_user_id', newAuthUserId);
+      localStorage.setItem('auth_username', username);
+      setAuthUserId(newAuthUserId);
+      setUsername(username);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { success: false, error: 'Failed to register' };
+    }
+  };
+
+  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('id, auth_user_id, username, password_hash, total_clicks, tier')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (error || !user) {
+        return { success: false, error: 'Invalid username or password' };
+      }
+
+      const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
+      if (!passwordMatch) {
+        return { success: false, error: 'Invalid username or password' };
+      }
+
+      localStorage.setItem('auth_user_id', user.auth_user_id);
+      localStorage.setItem('auth_username', user.username);
+      localStorage.setItem('sheep_user_id', user.id);
+
+      setAuthUserId(user.auth_user_id);
+      setUsername(user.username);
+
+      window.location.reload();
+
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Failed to login' };
+    }
+  };
+
+  const logout = async () => {
+    localStorage.removeItem('auth_user_id');
+    localStorage.removeItem('auth_username');
+    setAuthUserId(null);
+    setUsername(null);
+
+    window.location.reload();
+  };
+
+  const value: AuthContextType = {
+    authUserId,
+    username,
+    isAuthenticated: !!authUserId,
+    login,
+    register,
+    logout,
+    loading
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
