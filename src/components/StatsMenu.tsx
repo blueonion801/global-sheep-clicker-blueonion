@@ -1,6 +1,7 @@
-import React from 'react';
-import { X, BarChart3, TrendingUp, Calendar, MessageSquare, Flame, ShoppingBag } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, BarChart3, TrendingUp, Calendar, MessageSquare, Flame, ShoppingBag, Trophy, Palette } from 'lucide-react';
 import { User, UserStats, UserCurrency, GlobalStats, THEMES } from '../types/game';
+import { supabase } from '../lib/supabase';
 import { useTheme } from './ThemeProvider';
 
 interface StatsMenuProps {
@@ -22,6 +23,32 @@ export const StatsMenu: React.FC<StatsMenuProps> = ({
   hintsEnabled = true
 }) => {
   const { currentTheme } = useTheme();
+  const [totalCollectibles, setTotalCollectibles] = useState<number>(65);
+  const [ownedCollectibles, setOwnedCollectibles] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isOpen || !user) return;
+
+    const fetchCollectiblesData = async () => {
+      try {
+        const [totalResult, ownedResult] = await Promise.all([
+          supabase.from('collectibles').select('id', { count: 'exact', head: true }),
+          supabase.from('user_collectibles').select('collectible_id', { count: 'exact', head: true }).eq('user_id', user.id)
+        ]);
+
+        if (totalResult.count !== null) {
+          setTotalCollectibles(totalResult.count);
+        }
+        if (ownedResult.count !== null) {
+          setOwnedCollectibles(ownedResult.count);
+        }
+      } catch (error) {
+        console.error('Failed to fetch collectibles data:', error);
+      }
+    };
+
+    fetchCollectiblesData();
+  }, [isOpen, user]);
 
   if (!isOpen || !user) return null;
 
@@ -35,10 +62,12 @@ export const StatsMenu: React.FC<StatsMenuProps> = ({
     ? Object.values(userStats.daily_click_history).reduce((sum, clicks) => sum + clicks, 0) / Object.keys(userStats.daily_click_history).length
     : 0;
 
-  // Calculate current upgrades percentage
+  // Calculate themes unlocked
   const totalThemes = THEMES.length;
   const unlockedThemes = userCurrency?.unlocked_themes.length || 1;
-  const upgradesPercentage = (unlockedThemes / totalThemes) * 100;
+
+  // Calculate cosmetics percentage
+  const cosmeticsPercentage = totalCollectibles > 0 ? (ownedCollectibles / totalCollectibles) * 100 : 0;
 
   // Get longest coin streak (use current consecutive days as longest if no specific tracking)
   const longestCoinStreak = Math.max(
@@ -78,9 +107,21 @@ export const StatsMenu: React.FC<StatsMenuProps> = ({
       description: "Best consecutive daily reward streak"
     },
     {
+      icon: <Trophy className="w-5 h-5" />,
+      label: "Longest Top 3 Streak",
+      value: `${userStats?.longest_top3_streak || 0} days`,
+      description: "Longest consecutive days in top 3"
+    },
+    {
+      icon: <Palette className="w-5 h-5" />,
+      label: "Cosmetics Unlocked",
+      value: `${cosmeticsPercentage.toFixed(1)}%`,
+      description: `${ownedCollectibles} of ${totalCollectibles} cosmetics owned`
+    },
+    {
       icon: <ShoppingBag className="w-5 h-5" />,
       label: "Themes Unlocked",
-      value: `${upgradesPercentage.toFixed(0)}%`,
+      value: `${unlockedThemes}/${totalThemes}`,
       description: `${unlockedThemes} of ${totalThemes} themes owned`
     }
   ];

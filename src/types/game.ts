@@ -32,6 +32,9 @@ export interface UserStats {
   first_click_date: string | null;
   last_active_date: string | null;
   daily_click_history: Record<string, number>;
+  longest_top3_streak: number;
+  current_top3_streak: number;
+  last_top3_check_date: string | null;
   created_at: string;
   updated_at: string;
 }

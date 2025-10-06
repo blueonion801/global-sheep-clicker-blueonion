@@ -116,9 +116,12 @@ export const useGameState = () => {
         highest_daily_clicks: parseInt(localStorage.getItem('offline_highest_daily_clicks') || '0'),
         longest_coin_streak: parseInt(localStorage.getItem('offline_longest_coin_streak') || '0'),
         total_days_active: parseInt(localStorage.getItem('offline_total_days_active') || '1'),
-        first_click_date: new Date().toISOString().split('T')[0], // Start from today for new feature
+        first_click_date: new Date().toISOString().split('T')[0],
         last_active_date: new Date().toISOString().split('T')[0],
-        daily_click_history: {}, // Start fresh for new feature
+        daily_click_history: {},
+        longest_top3_streak: 0,
+        current_top3_streak: 0,
+        last_top3_check_date: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -146,13 +149,16 @@ export const useGameState = () => {
         const today = new Date().toISOString().split('T')[0];
         const initialStats: UserStats = {
           user_id: userId,
-          messages_sent: existingMessageCount || 0, // Include existing messages
+          messages_sent: existingMessageCount || 0,
           highest_daily_clicks: 0,
           longest_coin_streak: 0,
           total_days_active: 1,
-          first_click_date: today, // Start tracking from today
+          first_click_date: today,
           last_active_date: today,
-          daily_click_history: {}, // Start fresh for accurate daily averages
+          daily_click_history: {},
+          longest_top3_streak: 0,
+          current_top3_streak: 0,
+          last_top3_check_date: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
@@ -182,6 +188,9 @@ export const useGameState = () => {
         first_click_date: new Date().toISOString().split('T')[0],
         last_active_date: new Date().toISOString().split('T')[0],
         daily_click_history: {},
+        longest_top3_streak: 0,
+        current_top3_streak: 0,
+        last_top3_check_date: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
