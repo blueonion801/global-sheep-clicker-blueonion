@@ -11,7 +11,8 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { useTheme } from './components/ThemeProvider';
 import { Leaderboard } from './components/Leaderboard';
 import { CrochetShop } from './components/CrochetShop';
-import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff } from 'lucide-react';
+import { DeveloperMenu } from './components/DeveloperMenu';
+import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff, Code } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 
 function getEmojiName(emoji: string | undefined): string {
@@ -136,7 +137,10 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
     return saved !== null ? JSON.parse(saved) : true;
   });
   const [showStatsMenu, setShowStatsMenu] = React.useState(false);
+  const [showDeveloperMenu, setShowDeveloperMenu] = React.useState(false);
   const { currentTheme } = useTheme();
+
+  const isDeveloper = user && ['SheepDev', 'SheepDev2', 'SheepDev3'].includes(user.nickname);
 
   const toggleSound = () => {
     audioManager.playGuiSound();
@@ -160,6 +164,11 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   const toggleStatsMenu = () => {
     audioManager.playGuiSound();
     setShowStatsMenu(!showStatsMenu);
+  };
+
+  const toggleDeveloperMenu = () => {
+    audioManager.playGuiSound();
+    setShowDeveloperMenu(!showDeveloperMenu);
   };
 
   return (
@@ -214,7 +223,21 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
         </header>
 
         {/* Stats Menu Toggle Button */}
-        <div className="fixed top-4 right-4 z-40">
+        <div className="fixed top-4 right-4 z-40 flex gap-2">
+          {isDeveloper && (
+            <button
+              onClick={toggleDeveloperMenu}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
+              style={{
+                backgroundColor: '#DC262690',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid #DC262630'
+              }}
+            >
+              <Code className="w-5 h-5" />
+              <span className="hidden sm:inline">Dev</span>
+            </button>
+          )}
           <button
             onClick={toggleStatsMenu}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
@@ -239,6 +262,17 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
           globalStats={globalStats}
           hintsEnabled={hintsEnabled}
         />
+
+        {/* Developer Menu */}
+        {isDeveloper && (
+          <DeveloperMenu
+            isOpen={showDeveloperMenu}
+            onClose={() => setShowDeveloperMenu(false)}
+            user={user}
+            userCurrency={userCurrency}
+            isOffline={isOffline}
+          />
+        )}
 
         <div className="grid grid-cols-1 xl:grid-cols-3 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Left Column - Stats */}
