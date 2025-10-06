@@ -98,36 +98,19 @@ export const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled, i
               </div>
             ) : (
               [...messages].reverse().map((message) => {
-                const isSystemMessage = message.user_id === 'system';
                 const tierInfo = getTierInfo(message.tier);
-
-                if (isSystemMessage) {
-                  return (
-                    <div key={message.id} className="group">
-                      <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-lg p-3">
-                        <p className="text-yellow-200 text-sm font-medium text-center break-words">
-                          {message.message}
-                        </p>
-                        <span className="text-xs text-yellow-500/70 opacity-0 group-hover:opacity-100 transition-opacity block text-center mt-1">
-                          {formatTime(message.created_at)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                }
-
                 return (
                   <div key={message.id} className="group">
                     <div className="flex items-start gap-3">
                       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
                         <span className="text-sm">{tierInfo.icon}</span>
-                        <span
+                        <span 
                           className={`font-semibold text-sm truncate max-w-[120px] ${
                             tierInfo.color === 'rainbow'
                               ? 'bg-gradient-to-r from-red-400 via-yellow-400 via-green-400 via-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent'
                               : ''
                           }`}
-                          style={{
+                          style={{ 
                             color: tierInfo.color === 'rainbow' ? undefined : tierInfo.color
                           }}
                           title={message.nickname}
