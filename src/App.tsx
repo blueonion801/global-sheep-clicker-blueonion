@@ -236,35 +236,7 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
         </header>
 
         {/* Top Right Buttons */}
-        <div className="fixed top-4 right-4 z-40 flex flex-col gap-2">
-          <div className="flex gap-2">
-            {isDeveloper && (
-              <button
-                onClick={toggleDeveloperMenu}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
-                style={{
-                  backgroundColor: '#DC262690',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid #DC262630'
-                }}
-              >
-                <Code className="w-5 h-5" />
-                <span className="hidden sm:inline">Dev</span>
-              </button>
-            )}
-            <button
-              onClick={toggleStatsMenu}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
-              style={{
-                backgroundColor: `${currentTheme.colors.primary}90`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${currentTheme.colors.primary}30`
-              }}
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span className="hidden sm:inline">Stats</span>
-            </button>
-          </div>
+        <div className="fixed top-4 right-4 z-40 flex flex-col gap-2 items-end">
           <button
             onClick={handleAuthClick}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
@@ -286,6 +258,32 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
               </>
             )}
           </button>
+          <button
+            onClick={toggleStatsMenu}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
+            style={{
+              backgroundColor: `${currentTheme.colors.primary}90`,
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${currentTheme.colors.primary}30`
+            }}
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span className="hidden sm:inline">Stats</span>
+          </button>
+          {isDeveloper && (
+            <button
+              onClick={toggleDeveloperMenu}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all shadow-lg hover:scale-105"
+              style={{
+                backgroundColor: '#DC262690',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid #DC262630'
+              }}
+            >
+              <Code className="w-5 h-5" />
+              <span className="hidden sm:inline">Dev</span>
+            </button>
+          )}
         </div>
 
         {/* Stats Menu */}
