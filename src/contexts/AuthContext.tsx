@@ -148,6 +148,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     localStorage.removeItem('auth_user_id');
     localStorage.removeItem('auth_username');
+    localStorage.removeItem('sheep_user_id');
+
+    localStorage.removeItem('offline_wool_coins');
+    localStorage.removeItem('offline_sheep_gems');
+    localStorage.removeItem('offline_last_daily_claim');
+    localStorage.removeItem('offline_last_gem_claim');
+    localStorage.removeItem('offline_consecutive_days');
+    localStorage.removeItem('offline_selected_theme');
+    localStorage.removeItem('offline_unlocked_themes');
+    localStorage.removeItem('offline_selected_sheep_emoji');
+    localStorage.removeItem('offline_selected_particle');
+    localStorage.removeItem('offline_last_daily_box_claim');
+    localStorage.removeItem('offline_messages_sent');
+    localStorage.removeItem('offline_highest_daily_clicks');
+    localStorage.removeItem('offline_longest_coin_streak');
+    localStorage.removeItem('offline_total_days_active');
+    localStorage.removeItem('offline_total_sheep');
+    localStorage.removeItem('offline_user_clicks');
+    localStorage.removeItem('offline_daily_click_history');
+
     setAuthUserId(null);
     setUsername(null);
 
