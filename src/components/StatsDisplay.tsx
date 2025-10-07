@@ -7,18 +7,19 @@ import { useTheme } from './ThemeProvider';
 interface StatsDisplayProps {
   globalStats: GlobalStats | null;
   user: User | null;
-  onUpdateNickname: (nickname: string) => void;
+  onUpdateNickname: (nickname: string) => Promise<{ success: boolean; error?: string }>;
   onUpdateTier: (tier: number) => void;
 }
 
-export const StatsDisplay: React.FC<StatsDisplayProps> = ({ 
-  globalStats, 
-  user, 
-  onUpdateNickname, 
-  onUpdateTier 
+export const StatsDisplay: React.FC<StatsDisplayProps> = ({
+  globalStats,
+  user,
+  onUpdateNickname,
+  onUpdateTier
 }) => {
   const [isEditingNickname, setIsEditingNickname] = React.useState(false);
   const [nicknameInput, setNicknameInput] = React.useState(user?.nickname || '');
+  const [nicknameError, setNicknameError] = React.useState<string | null>(null);
   const { currentTheme } = useTheme();
 
   const currentTier = user ? TIERS.find(t => t.level === user.tier) : TIERS[0];
@@ -27,11 +28,26 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({
     ((user.total_clicks - (TIERS[user.tier]?.requirement || 0)) / 
      (nextTier.requirement - (TIERS[user.tier]?.requirement || 0))) * 100 : 0;
 
-  const handleNicknameSubmit = () => {
-    if (nicknameInput.trim() && nicknameInput.trim() !== user?.nickname) {
-      onUpdateNickname(nicknameInput.trim());
+  const handleNicknameSubmit = async () => {
+    if (!nicknameInput.trim()) {
+      setNicknameError('Nickname cannot be empty');
+      return;
     }
-    setIsEditingNickname(false);
+
+    if (nicknameInput.trim() === user?.nickname) {
+      setIsEditingNickname(false);
+      setNicknameError(null);
+      return;
+    }
+
+    const result = await onUpdateNickname(nicknameInput.trim());
+
+    if (result.success) {
+      setIsEditingNickname(false);
+      setNicknameError(null);
+    } else {
+      setNicknameError(result.error || 'Failed to update nickname');
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -75,32 +91,45 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({
             
             {/* Username Section */}
             <div className="mb-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                {isEditingNickname ? (
-                  <input
-                    type="text"
-                    value={nicknameInput}
-                    onChange={(e) => setNicknameInput(e.target.value)}
-                    onBlur={handleNicknameSubmit}
-                    onKeyDown={handleKeyPress}
-                    className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center"
-                    maxLength={20}
-                    autoFocus
-                  />
-                ) : (
-                  <>
-                    <span className="text-lg font-semibold text-white">{user.nickname}</span>
-                    <button
-                      onClick={() => {
-                        audioManager.playGuiSound();
-                        setIsEditingNickname(true);
-                        setNicknameInput(user.nickname);
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
+                  {isEditingNickname ? (
+                    <input
+                      type="text"
+                      value={nicknameInput}
+                      onChange={(e) => {
+                        setNicknameInput(e.target.value);
+                        setNicknameError(null);
                       }}
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                  </>
+                      onBlur={handleNicknameSubmit}
+                      onKeyDown={handleKeyPress}
+                      className={`bg-gray-700 border rounded px-2 py-1 text-white text-center ${
+                        nicknameError ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                      maxLength={20}
+                      autoFocus
+                    />
+                  ) : (
+                    <>
+                      <span className="text-lg font-semibold text-white">{user.nickname}</span>
+                      <button
+                        onClick={() => {
+                          audioManager.playGuiSound();
+                          setIsEditingNickname(true);
+                          setNicknameInput(user.nickname);
+                          setNicknameError(null);
+                        }}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+                {nicknameError && (
+                  <div className="text-red-400 text-xs">
+                    {nicknameError}
+                  </div>
                 )}
               </div>
             </div>

@@ -1351,23 +1351,65 @@ export const useGameState = () => {
     }
   }, [user, userStats]);
 
-  const updateNickname = useCallback(async (newNickname: string) => {
-    if (!user || !newNickname.trim()) return;
+  const updateNickname = useCallback(async (newNickname: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user || !newNickname.trim()) {
+      return { success: false, error: 'Nickname cannot be empty' };
+    }
 
-    const updatedUser = { ...user, nickname: newNickname.trim() };
-    setUser(updatedUser);
+    const trimmedNickname = newNickname.trim();
+
+    if (trimmedNickname === user.nickname) {
+      return { success: true };
+    }
 
     if (!isOfflineMode(forceOffline)) {
       try {
-        await supabase
+        // Check if nickname is already taken
+        const { data: existingUser, error: checkError } = await supabase
           .from('users')
-          .update({ nickname: newNickname.trim() })
+          .select('id')
+          .eq('nickname', trimmedNickname)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Failed to check nickname uniqueness:', checkError);
+          return { success: false, error: 'Failed to verify nickname availability' };
+        }
+
+        if (existingUser && existingUser.id !== user.id) {
+          return { success: false, error: 'This nickname is already taken' };
+        }
+
+        // Update nickname in users table
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            nickname: trimmedNickname,
+            username: trimmedNickname
+          })
           .eq('id', user.id);
+
+        if (updateError) {
+          console.error('Failed to update nickname:', updateError);
+          return { success: false, error: 'Failed to update nickname' };
+        }
+
+        // Update local state
+        const updatedUser = { ...user, nickname: trimmedNickname };
+        setUser(updatedUser);
+
+        return { success: true };
       } catch (error) {
         console.error('Failed to update nickname:', error);
+        return { success: false, error: 'An unexpected error occurred' };
       }
+    } else {
+      // Offline mode
+      const updatedUser = { ...user, nickname: trimmedNickname };
+      setUser(updatedUser);
+      return { success: true };
     }
-  }, [user]);
+  }, [user, forceOffline]);
 
   useEffect(() => {
     initializeData();
