@@ -55,20 +55,47 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data: existingUser } = await supabase
         .from('users')
-        .select('username')
+        .select('id, username, auth_user_id, password_hash, nickname')
         .eq('username', username)
         .maybeSingle();
-
-      if (existingUser) {
-        return { success: false, error: 'Username already exists' };
-      }
 
       const newAuthUserId = crypto.randomUUID();
       const passwordHash = await bcrypt.hash(password, 10);
 
+      if (existingUser) {
+        // Check if the existing user is anonymous (no auth_user_id or password_hash)
+        if (!existingUser.auth_user_id && !existingUser.password_hash) {
+          // This is an anonymous account - claim it by adding auth credentials
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({
+              auth_user_id: newAuthUserId,
+              password_hash: passwordHash
+            })
+            .eq('id', existingUser.id);
+
+          if (updateError) {
+            return { success: false, error: updateError.message };
+          }
+
+          // Update local storage to point to the claimed account
+          localStorage.setItem('auth_user_id', newAuthUserId);
+          localStorage.setItem('auth_username', username);
+          localStorage.setItem('sheep_user_id', existingUser.id);
+          setAuthUserId(newAuthUserId);
+          setUsername(username);
+
+          return { success: true };
+        } else {
+          // This username is already claimed by someone else
+          return { success: false, error: 'Username already exists' };
+        }
+      }
+
       const currentUserId = localStorage.getItem('sheep_user_id');
 
       if (currentUserId) {
+        // Update current anonymous session with auth credentials
         const { error: updateError } = await supabase
           .from('users')
           .update({
@@ -82,6 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return { success: false, error: updateError.message };
         }
       } else {
+        // Create new account
         const { error: insertError } = await supabase
           .from('users')
           .insert([{

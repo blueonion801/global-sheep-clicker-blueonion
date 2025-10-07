@@ -151,9 +151,14 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
           {mode === 'register' && (
             <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-              <p className="text-xs text-blue-300">
-                Your current progress will be saved to your new account!
+              <p className="text-xs text-blue-300 mb-2">
+                <strong>Create a new account:</strong>
               </p>
+              <ul className="text-xs text-blue-300 space-y-1 list-disc list-inside">
+                <li>Your current progress will be saved</li>
+                <li>Use an existing username to claim that progress</li>
+                <li>Create a unique username for a fresh start</li>
+              </ul>
             </div>
           )}
         </div>
