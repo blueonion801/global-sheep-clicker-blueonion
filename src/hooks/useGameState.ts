@@ -559,7 +559,7 @@ export const useGameState = () => {
   }, [user, userCurrency, forceOffline]);
 
   const generateRandomCollectible = async (targetRarity?: string): Promise<any | null> => {
-    if (isOfflineMode(forceOffline)) {
+    if (isOfflineMode(forceOffline) || !user) {
       // Return a mock collectible for offline mode
       const mockCollectibles = [
         { id: 'sheep_chick', name: 'Chick', emoji: '🐤', type: 'sheep_emoji', rarity: 'normal' },
@@ -567,7 +567,7 @@ export const useGameState = () => {
         { id: 'particle_sparkle', name: 'Sparkle', emoji: '✨', type: 'particle', rarity: 'epic' },
         { id: 'particle_heart', name: 'Heart', emoji: '💖', type: 'particle', rarity: 'epic' }
       ];
-      
+
       if (targetRarity) {
         const filtered = mockCollectibles.filter(c => c.rarity === targetRarity);
         return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : mockCollectibles[Math.floor(Math.random() * mockCollectibles.length)];
@@ -577,11 +577,31 @@ export const useGameState = () => {
 
     try {
       // Get all collectibles that can be obtained from boxes
-      const { data: allCollectibles, error } = await supabase
+      const { data: allCollectibles, error: collectiblesError } = await supabase
         .from('collectibles')
         .select('*');
 
-      if (error || !allCollectibles || allCollectibles.length === 0) {
+      if (collectiblesError || !allCollectibles || allCollectibles.length === 0) {
+        return null;
+      }
+
+      // Get collectibles the user already owns
+      const { data: ownedCollectibles, error: ownedError } = await supabase
+        .from('user_collectibles')
+        .select('collectible_id')
+        .eq('user_id', user.id);
+
+      if (ownedError) {
+        console.error('Failed to fetch owned collectibles:', ownedError);
+        // Continue without filtering if we can't fetch owned collectibles
+      }
+
+      // Filter out collectibles the user already owns
+      const ownedIds = new Set(ownedCollectibles?.map(oc => oc.collectible_id) || []);
+      const unownedCollectibles = allCollectibles.filter(c => !ownedIds.has(c.id));
+
+      // If user owns all collectibles, return null (fallback to currency rewards)
+      if (unownedCollectibles.length === 0) {
         return null;
       }
 
@@ -598,13 +618,23 @@ export const useGameState = () => {
         }
       }
 
-      // Get collectibles of target rarity
-      const rarityCollectibles = allCollectibles.filter(c => c.rarity === finalRarity);
-      
-      // If no collectibles of target rarity, fall back to normal
-      const availableCollectibles = rarityCollectibles.length > 0 
-        ? rarityCollectibles 
-        : allCollectibles.filter(c => c.rarity === 'normal');
+      // Get unowned collectibles of target rarity
+      let rarityCollectibles = unownedCollectibles.filter(c => c.rarity === finalRarity);
+
+      // If no unowned collectibles of target rarity, try other rarities
+      if (rarityCollectibles.length === 0) {
+        // Try epic first, then legendary, then normal
+        const rarityFallback = ['epic', 'legendary', 'normal'].filter(r => r !== finalRarity);
+        for (const rarity of rarityFallback) {
+          rarityCollectibles = unownedCollectibles.filter(c => c.rarity === rarity);
+          if (rarityCollectibles.length > 0) break;
+        }
+      }
+
+      // If still no collectibles available, return any unowned collectible
+      const availableCollectibles = rarityCollectibles.length > 0
+        ? rarityCollectibles
+        : unownedCollectibles;
 
       if (availableCollectibles.length === 0) {
         return null;
