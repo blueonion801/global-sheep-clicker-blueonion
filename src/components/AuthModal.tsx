@@ -90,6 +90,14 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             </button>
           </div>
 
+          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+            <p className="text-xs text-amber-300">
+              <strong>⚠️ Experimental Feature:</strong> Account system is still in testing.
+              Creating an account later may cause issues with progress transfer.
+              We recommend creating an account before starting to play.
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
