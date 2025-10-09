@@ -42,12 +42,16 @@ export const useGameState = () => {
         wool_coins: parseInt(localStorage.getItem('offline_wool_coins') || '0'),
         sheep_gems: parseInt(localStorage.getItem('offline_sheep_gems') || '0'),
         last_daily_claim: localStorage.getItem('offline_last_daily_claim'),
+        last_daily_box_claim: localStorage.getItem('offline_last_daily_box_claim'),
         last_gem_claim: localStorage.getItem('offline_last_gem_claim'),
         consecutive_days: parseInt(localStorage.getItem('offline_consecutive_days') || '0'),
         selected_theme: localStorage.getItem('offline_selected_theme') || 'cosmic',
         unlocked_themes: JSON.parse(localStorage.getItem('offline_unlocked_themes') || '["cosmic"]'),
         selected_sheep_emoji: localStorage.getItem('offline_selected_sheep_emoji') || '🐑',
         selected_particle: localStorage.getItem('offline_selected_particle') || '✧',
+        selected_title: localStorage.getItem('offline_selected_title') || null,
+        unlocked_titles: JSON.parse(localStorage.getItem('offline_unlocked_titles') || '[]'),
+        show_title: localStorage.getItem('offline_show_title') === 'true',
         updated_at: new Date().toISOString()
       };
     }
@@ -96,12 +100,16 @@ export const useGameState = () => {
         wool_coins: parseInt(localStorage.getItem('offline_wool_coins') || '0'),
         sheep_gems: parseInt(localStorage.getItem('offline_sheep_gems') || '0'),
         last_daily_claim: localStorage.getItem('offline_last_daily_claim'),
+        last_daily_box_claim: localStorage.getItem('offline_last_daily_box_claim'),
         last_gem_claim: localStorage.getItem('offline_last_gem_claim'),
         consecutive_days: parseInt(localStorage.getItem('offline_consecutive_days') || '0'),
         selected_theme: localStorage.getItem('offline_selected_theme') || 'cosmic',
         unlocked_themes: JSON.parse(localStorage.getItem('offline_unlocked_themes') || '["cosmic"]'),
         selected_sheep_emoji: localStorage.getItem('offline_selected_sheep_emoji') || '🐑',
         selected_particle: localStorage.getItem('offline_selected_particle') || '✧',
+        selected_title: localStorage.getItem('offline_selected_title') || null,
+        unlocked_titles: JSON.parse(localStorage.getItem('offline_unlocked_titles') || '[]'),
+        show_title: localStorage.getItem('offline_show_title') === 'true',
         updated_at: new Date().toISOString()
       };
     }
@@ -1481,6 +1489,53 @@ export const useGameState = () => {
     };
   }, [forceOffline]);
 
+  const selectTitle = useCallback(async (titleId: string | null): Promise<void> => {
+    if (!user || !userCurrency) return;
+
+    if (isOfflineMode(forceOffline)) {
+      localStorage.setItem('offline_selected_title', titleId || '');
+      setUserCurrency(prev => prev ? { ...prev, selected_title: titleId } : null);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_currency')
+        .update({ selected_title: titleId })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setUserCurrency(prev => prev ? { ...prev, selected_title: titleId } : null);
+      audioManager.playGuiSound();
+    } catch (error) {
+      console.error('Failed to select title:', error);
+    }
+  }, [user, userCurrency, forceOffline]);
+
+  const toggleShowTitle = useCallback(async (show: boolean): Promise<void> => {
+    if (!user || !userCurrency) return;
+
+    if (isOfflineMode(forceOffline)) {
+      localStorage.setItem('offline_show_title', String(show));
+      setUserCurrency(prev => prev ? { ...prev, show_title: show } : null);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_currency')
+        .update({ show_title: show })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setUserCurrency(prev => prev ? { ...prev, show_title: show } : null);
+    } catch (error) {
+      console.error('Failed to toggle title visibility:', error);
+    }
+  }, [user, userCurrency, forceOffline]);
+
   return {
     user,
     userCurrency,
@@ -1501,6 +1556,8 @@ export const useGameState = () => {
     openEmbroideredBoxWithCoins,
     purchaseCollectible,
     selectCollectible,
+    selectTitle,
+    toggleShowTitle,
     isOffline: isOfflineMode(forceOffline)
   };
 };

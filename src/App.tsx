@@ -12,6 +12,7 @@ import { useTheme } from './components/ThemeProvider';
 import { Leaderboard } from './components/Leaderboard';
 import { CrochetShop } from './components/CrochetShop';
 import { DeveloperMenu } from './components/DeveloperMenu';
+import { TitlesMenu } from './components/TitlesMenu';
 import { Loader2, Wifi, WifiOff, Volume2, VolumeX, BarChart3, HelpCircle, EyeOff, Code, LogIn, LogOut } from 'lucide-react';
 import { audioManager } from './utils/audioManager';
 import { AuthModal } from './components/AuthModal';
@@ -62,14 +63,24 @@ function getEmojiName(emoji: string | undefined): string {
     "🦖": "T-Rex",
     "🐠": "Tropical Fish",
     "🦄": "Unicorn",
-    "🐳": "Whale"
+    "🐳": "Whale",
+    "🎤": "Microphone",
+    "📼": "VHS Tape",
+    "🧶": "Yarn",
+    "👻": "Ghost",
+    "🎋": "Bamboo",
+    "❔": "Question Mark",
+    "🎈": "Balloon",
+    "🍀": "Clover",
+    "🪁": "Kite",
+    "⏳": "Hourglass"
   };
 
   return emojiToName[emoji] || 'Animal';
 }
 
 function App() {
-  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, claimDailyGems, openEmbroideredBox, openEmbroideredBoxWithCoins, purchaseCollectible, selectCollectible, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
+  const { user, userCurrency, userStats, globalStats, chatMessages, loading, error, incrementSheep, claimDailyReward, claimDailyGems, openEmbroideredBox, openEmbroideredBoxWithCoins, purchaseCollectible, selectCollectible, selectTitle, toggleShowTitle, purchaseTheme, selectTheme, sendMessage, updateNickname, updateTier, isOffline } = useGameState();
 
   if (loading) {
     return (
@@ -85,7 +96,7 @@ function App() {
 
   return (
     <ThemeProvider selectedTheme={userCurrency?.selected_theme || 'cosmic'}>
-      <MainLayout 
+      <MainLayout
         user={user}
         userCurrency={userCurrency}
         userStats={userStats}
@@ -101,6 +112,8 @@ function App() {
         openEmbroideredBoxWithCoins={openEmbroideredBoxWithCoins}
         purchaseCollectible={purchaseCollectible}
         selectCollectible={selectCollectible}
+        selectTitle={selectTitle}
+        toggleShowTitle={toggleShowTitle}
         sendMessage={sendMessage}
         updateNickname={updateNickname}
         updateTier={updateTier}
@@ -111,7 +124,7 @@ function App() {
   );
 }
 
-function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, claimDailyGems, openEmbroideredBox, openEmbroideredBoxWithCoins, purchaseCollectible, selectCollectible, sendMessage, updateNickname, updateTier, isOffline, loading }: {
+function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, error, incrementSheep, claimDailyReward, purchaseTheme, selectTheme, claimDailyGems, openEmbroideredBox, openEmbroideredBoxWithCoins, purchaseCollectible, selectCollectible, selectTitle, toggleShowTitle, sendMessage, updateNickname, updateTier, isOffline, loading }: {
   user: any;
   userCurrency: any;
   userStats: any;
@@ -127,6 +140,8 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
   openEmbroideredBoxWithCoins: (boxType: 'daily' | 'purchased') => Promise<any>;
   purchaseCollectible: (collectibleId: string) => Promise<boolean>;
   selectCollectible: (collectibleId: string, type: 'sheep_emoji' | 'particle') => Promise<void>;
+  selectTitle: (titleId: string | null) => Promise<void>;
+  toggleShowTitle: (show: boolean) => Promise<void>;
   sendMessage: (message: string) => void;
   updateNickname: (nickname: string) => void;
   updateTier: (tier: number) => void;
@@ -321,6 +336,21 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
             <div className="hidden lg:block">
               <TiersList user={user} />
             </div>
+            {/* Titles menu - shown after reaching Sheep God tier */}
+            {user && userCurrency && (
+              <div className="hidden lg:block">
+                <TitlesMenu
+                  totalClicks={user.total_clicks}
+                  selectedTitle={userCurrency.selected_title}
+                  unlockedTitles={userCurrency.unlocked_titles}
+                  showTitle={userCurrency.show_title}
+                  currentTier={user.tier}
+                  nickname={user.nickname}
+                  onSelectTitle={selectTitle}
+                  onToggleShowTitle={toggleShowTitle}
+                />
+              </div>
+            )}
           </div>
 
           {/* Center Column - Main Game */}
@@ -430,8 +460,20 @@ function MainLayout({ user, userCurrency, userStats, globalStats, chatMessages, 
         )}
 
         {/* Mobile Tiers List - shown only on mobile, placed at bottom */}
-        <div className="lg:hidden mt-8">
+        <div className="lg:hidden mt-8 space-y-8">
           <TiersList user={user} />
+          {user && userCurrency && (
+            <TitlesMenu
+              totalClicks={user.total_clicks}
+              selectedTitle={userCurrency.selected_title}
+              unlockedTitles={userCurrency.unlocked_titles}
+              showTitle={userCurrency.show_title}
+              currentTier={user.tier}
+              nickname={user.nickname}
+              onSelectTitle={selectTitle}
+              onToggleShowTitle={toggleShowTitle}
+            />
+          )}
         </div>
 
         {/* Footer */}

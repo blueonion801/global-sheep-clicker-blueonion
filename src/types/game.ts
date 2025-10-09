@@ -20,6 +20,9 @@ export interface UserCurrency {
   unlocked_themes: string[];
   selected_sheep_emoji: string;
   selected_particle: string;
+  selected_title: string | null;
+  unlocked_titles: string[];
+  show_title: boolean;
   updated_at: string;
 }
 
@@ -231,4 +234,25 @@ export const TIERS: TierInfo[] = [
   { level: 7, name: 'Celestial Shepherd', icon: '🌙', requirement: 25000, color: '#A855F7' },
   { level: 8, name: 'Eternal Flockkeeper', icon: '🤍', requirement: 50000, color: '#FFFFFF' },
   { level: 9, name: 'Sheep God', icon: '🌈', requirement: 100000, color: 'rainbow' }
+];
+
+export interface TitleInfo {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+  requirement: number;
+}
+
+export const TITLES: TitleInfo[] = [
+  { id: 'idol', name: 'Idol', emoji: '🎤', color: '#38ffe2', requirement: 100000 },
+  { id: 'vibing', name: 'Vibing', emoji: '📼', color: '#4e09af', requirement: 150000 },
+  { id: 'wool', name: 'Wool', emoji: '🧶', color: '#0a5ca1', requirement: 200000 },
+  { id: 'spooky', name: 'Spooky', emoji: '👻', color: '#646464', requirement: 250000 },
+  { id: 'calm', name: 'Calm', emoji: '🎋', color: '#4caf50', requirement: 300000 },
+  { id: 'unknown', name: 'Unknown', emoji: '❔', color: '#aba759', requirement: 400000 },
+  { id: 'funny', name: 'Funny', emoji: '🎈', color: '#fe4b6f', requirement: 500000 },
+  { id: 'lucky', name: 'Lucky', emoji: '🍀', color: '#437c2e', requirement: 600000 },
+  { id: 'free', name: 'Free', emoji: '🪁', color: '#7bb7eb', requirement: 800000 },
+  { id: 'eternal', name: 'Eternal', emoji: '⏳', color: '#3b307b', requirement: 1000000 }
 ];

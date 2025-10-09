@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Crown, Medal, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { User, TIERS } from '../types/game';
+import { User, TIERS, TITLES } from '../types/game';
 import { useTheme } from './ThemeProvider';
 import { audioManager } from '../utils/audioManager';
 
@@ -17,6 +17,8 @@ interface LeaderboardEntry {
   total_clicks: number;
   tier: number;
   rank: number;
+  selected_title?: string | null;
+  show_title?: boolean;
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline, hintsEnabled = true }) => {
@@ -42,22 +44,42 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
     }
 
     try {
-      const { data, error } = await supabase
+      const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('id, nickname, total_clicks, tier')
         .not('nickname', 'in', '(SheepDev,SheepDev2,SheepDev3)')
         .order('total_clicks', { ascending: false })
         .limit(3);
 
-      if (error) {
-        console.error('Failed to fetch leaderboard:', error);
+      if (usersError) {
+        console.error('Failed to fetch leaderboard:', usersError);
         return;
       }
 
-      const leaderboardData: LeaderboardEntry[] = (data || []).map((user, index) => ({
-        ...user,
-        rank: index + 1
-      }));
+      const userIds = (usersData || []).map(u => u.id);
+
+      const { data: currencyData, error: currencyError } = await supabase
+        .from('user_currency')
+        .select('user_id, selected_title, show_title')
+        .in('user_id', userIds);
+
+      if (currencyError) {
+        console.error('Failed to fetch user currency:', currencyError);
+      }
+
+      const currencyMap = new Map(
+        (currencyData || []).map(c => [c.user_id, { selected_title: c.selected_title, show_title: c.show_title }])
+      );
+
+      const leaderboardData: LeaderboardEntry[] = (usersData || []).map((user, index) => {
+        const currency = currencyMap.get(user.id);
+        return {
+          ...user,
+          rank: index + 1,
+          selected_title: currency?.selected_title || null,
+          show_title: currency?.show_title ?? true
+        };
+      });
 
       setTopPlayers(leaderboardData);
     } catch (error) {
@@ -221,7 +243,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
             const rankColors = getRankColors(player.rank);
             const tierInfo = getTierInfo(player.tier);
             const isCurrentUserEntry = isCurrentUser(player.id);
-            
+
+            const titleInfo = player.selected_title && player.show_title
+              ? TITLES.find(t => t.id === player.selected_title)
+              : null;
+
             return (
               <div
                 key={player.id}
@@ -247,22 +273,33 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser, isOffline
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     {getRankIcon(player.rank)}
-                    
+
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">{tierInfo.icon}</span>
-                        <h4 
+                        {titleInfo && (
+                          <span className="text-lg">{titleInfo.emoji}</span>
+                        )}
+                        <h4
                           className={`font-bold truncate ${
                             tierInfo.color === 'rainbow'
                               ? 'bg-gradient-to-r from-red-400 via-yellow-400 via-green-400 via-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent'
                               : isCurrentUserEntry ? '' : 'text-white'
                           }`}
-                          style={{ 
-                            color: tierInfo.color === 'rainbow' ? undefined : 
+                          style={{
+                            color: tierInfo.color === 'rainbow' ? undefined :
                                    isCurrentUserEntry ? currentTheme.colors.primary :
                                    tierInfo.color === '#FFFFFF' ? '#FFFFFF' : tierInfo.color
                           }}
                         >
+                          {titleInfo && (
+                            <span
+                              className="italic font-semibold mr-1"
+                              style={{ color: titleInfo.color }}
+                            >
+                              {titleInfo.name}
+                            </span>
+                          )}
                           {player.nickname}
                           {isCurrentUserEntry && (
                             <span className="ml-2 text-xs px-2 py-1 rounded-full bg-current/20">
